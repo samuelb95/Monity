@@ -21,6 +21,10 @@ import {
   Instagram,
   Linkedin
 } from 'lucide-react';
+import { BudgetPlanningAnimation } from './animations/BudgetPlanningAnimation';
+import { RealTimeTrackingAnimation } from './animations/RealTimeTrackingAnimation';
+import { SavingsGoalAnimation } from './animations/SavingsGoalAnimation';
+import { SharedBudgetAnimation } from './animations/SharedBudgetAnimation';
 
 export const LandingPage = ({ onGetStarted }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -340,9 +344,10 @@ export const LandingPage = ({ onGetStarted }) => {
                       <div className="absolute top-4 right-4 bg-white/95 backdrop-blur-sm px-3 py-1 rounded-full text-sm shadow-lg z-10">
                         💡 Animation interactive
                       </div>
-                      <div className="text-6xl opacity-30">
-                        {feature.icon}
-                      </div>
+                      {index === 0 && <BudgetPlanningAnimation />}
+                      {index === 1 && <RealTimeTrackingAnimation />}
+                      {index === 2 && <SavingsGoalAnimation />}
+                      {index === 3 && <SharedBudgetAnimation />}
                     </div>
                   </div>
                 </div>
