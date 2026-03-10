@@ -286,21 +286,107 @@ export const LandingPage = ({ onGetStarted }) => {
       </motion.section>
 
       {/* Problem Section */}
-      <section className="bg-white py-20">
-        <div className="container mx-auto px-4">
+      <section className="relative py-20 bg-gradient-to-b from-white via-blue-50 to-white overflow-hidden">
+        {/* Decorative background elements */}
+        <div className="absolute inset-0 overflow-hidden">
+          <div className="absolute -top-40 -right-40 w-80 h-80 bg-red-200 rounded-full blur-3xl opacity-30" />
+          <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-orange-200 rounded-full blur-3xl opacity-30" />
+        </div>
+
+        <div className="container mx-auto px-4 relative z-10">
           <motion.div
             initial={{ opacity: 0, y: 50 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            className="max-w-4xl mx-auto text-center"
+            transition={{ duration: 0.6 }}
+            className="max-w-5xl mx-auto"
           >
-            <h2 className="text-4xl font-bold mb-6 text-gray-900">Le défi de la gestion de budget</h2>
-            <p className="text-xl text-gray-600 mb-4 leading-relaxed">
-              Gérer son budget n'a jamais été aussi complexe. Entre les abonnements, les dépenses imprévues et les projets à venir, il devient difficile de savoir où part réellement l'argent.
-            </p>
-            <p className="text-lg text-gray-500">
-              <strong>Résultat :</strong> stress, dépassements et manque de visibilité.
-            </p>
+            <div className="text-center mb-16">
+              <motion.div
+                initial={{ opacity: 0, scale: 0.8 }}
+                whileInView={{ opacity: 1, scale: 1 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.4 }}
+                className="inline-flex items-center gap-2 bg-red-100 text-red-700 px-4 py-2 rounded-full mb-6 font-medium"
+              >
+                <div className="w-3 h-3 bg-red-600 rounded-full animate-pulse" />
+                Le défi actuel
+              </motion.div>
+              <h2 className="text-5xl md:text-6xl font-bold mb-8 text-gray-900 leading-tight">
+                Gérer son budget, c'est <span className="bg-gradient-to-r from-red-600 to-orange-600 bg-clip-text text-transparent">plus complexe</span> que jamais
+              </h2>
+            </div>
+
+            <div className="grid md:grid-cols-3 gap-6 mb-12">
+              {/* Problem 1 */}
+              <motion.div
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: 0.1, duration: 0.5 }}
+                className="group bg-white rounded-2xl p-8 shadow-lg hover:shadow-2xl transition-all border-l-4 border-red-500"
+              >
+                <div className="mb-4 text-5xl">📊</div>
+                <h3 className="text-xl font-bold mb-3 text-gray-900">Trop de sources d'argent</h3>
+                <p className="text-gray-600 leading-relaxed">
+                  Salaire, revenus supplémentaires, cadeaux... Tout se mélange et il devient impossible de savoir où part votre argent.
+                </p>
+              </motion.div>
+
+              {/* Problem 2 */}
+              <motion.div
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: 0.2, duration: 0.5 }}
+                className="group bg-white rounded-2xl p-8 shadow-lg hover:shadow-2xl transition-all border-l-4 border-orange-500"
+              >
+                <div className="mb-4 text-5xl">💸</div>
+                <h3 className="text-xl font-bold mb-3 text-gray-900">Dépenses imprévisibles</h3>
+                <p className="text-gray-600 leading-relaxed">
+                  Abonnements oubliés, réparations urgentes, achats impulsifs... qui dépassent votre budget sans prévenir.
+                </p>
+              </motion.div>
+
+              {/* Problem 3 */}
+              <motion.div
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: 0.3, duration: 0.5 }}
+                className="group bg-white rounded-2xl p-8 shadow-lg hover:shadow-2xl transition-all border-l-4 border-yellow-500"
+              >
+                <div className="mb-4 text-5xl">😰</div>
+                <h3 className="text-xl font-bold mb-3 text-gray-900">Manque de visibilité</h3>
+                <p className="text-gray-600 leading-relaxed">
+                  Pas de vue d'ensemble claire. Stress constant et sentiment de perte de contrôle sur vos finances.
+                </p>
+              </motion.div>
+            </div>
+
+            {/* Impact Section */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              whileInView={{ opacity: 1, scale: 1 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.4, duration: 0.5 }}
+              className="bg-gradient-to-r from-red-50 to-orange-50 rounded-2xl p-8 md:p-12 border-2 border-red-200"
+            >
+              <div className="grid md:grid-cols-3 gap-8">
+                <div className="text-center">
+                  <div className="text-4xl font-bold text-red-600 mb-2">Stress</div>
+                  <p className="text-gray-700">Anxiété permanente sur vos dépenses</p>
+                </div>
+                <div className="text-center border-l-2 border-r-2 border-red-200">
+                  <div className="text-4xl font-bold text-orange-600 mb-2">Dépassements</div>
+                  <p className="text-gray-700">Budgets explosés sans comprendre pourquoi</p>
+                </div>
+                <div className="text-center">
+                  <div className="text-4xl font-bold text-yellow-600 mb-2">Confusion</div>
+                  <p className="text-gray-700">Impossible de planifier ou économiser</p>
+                </div>
+              </div>
+            </motion.div>
           </motion.div>
         </div>
       </section>
