@@ -45,15 +45,24 @@ function AppContent() {
         // Nettoyer l'URL
         window.history.replaceState({}, document.title, window.location.pathname);
         
-        // Attendre que Supabase traite le callback
-        await new Promise(resolve => setTimeout(resolve, 500));
+        // Attendre plus longtemps que Supabase traite le callback
+        let attempts = 0;
+        const maxAttempts = 10;
         
-        const { data, error } = await supabase.auth.getSession();
-        console.log('📊 Session après OAuth:', { session: !!data.session, error });
-        if (data.session) {
-          console.log('✅ Session établie, redirection vers dashboard');
-          navigate('/dashboard');
+        while (attempts < maxAttempts) {
+          await new Promise(resolve => setTimeout(resolve, 500));
+          const { data: { user }, error } = await supabase.auth.getUser();
+          console.log(`📊 Tentative ${attempts + 1}: user=${!!user}, error=${error?.message || 'none'}`);
+          
+          if (user) {
+            console.log('✅ Utilisateur détecté, redirection vers dashboard');
+            navigate('/dashboard');
+            return;
+          }
+          attempts++;
         }
+        
+        console.log('⚠️ Pas d\'utilisateur après ' + maxAttempts + ' tentatives');
       }
     };
 
