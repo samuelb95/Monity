@@ -432,8 +432,8 @@ export const LandingPage = ({ onGetStarted }) => {
                       </div>
                       {index === 0 && <BudgetPlanningAnimation />}
                       {index === 1 && <RealTimeTrackingAnimation />}
-                      {index === 2 && <SavingsGoalAnimation />}
-                      {index === 3 && <SharedBudgetAnimation />}
+                      {index === 2 && <SharedBudgetAnimation />}
+                      {index === 3 && <SavingsGoalAnimation />}
                     </div>
                   </div>
                 </div>
