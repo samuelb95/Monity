@@ -27,43 +27,49 @@ export function RealTimeTrackingAnimation() {
     ];
 
     let currentIndex = 0;
-    const interval = setInterval(() => {
-      if (currentIndex < possibleTransactions.length) {
-        const transaction = possibleTransactions[currentIndex];
-        const colors = {
-          Charge: "#3b82f6",
-          Épargne: "#10b981",
-          Loisir: "#a855f7"
-        };
+    
+    // Délai initial de 800ms avant le démarrage de l'animation
+    const timeout = setTimeout(() => {
+      const interval = setInterval(() => {
+        if (currentIndex < possibleTransactions.length) {
+          const transaction = possibleTransactions[currentIndex];
+          const colors = {
+            Charge: "#3b82f6",
+            Épargne: "#10b981",
+            Loisir: "#a855f7"
+          };
 
-        setTransactions((prev) => [
-          ...prev,
-          {
-            id: Date.now(),
-            category: transaction.category,
-            amount: transaction.amount,
-            color: colors[transaction.category]
-          }
-        ]);
+          setTransactions((prev) => [
+            ...prev,
+            {
+              id: Date.now(),
+              category: transaction.category,
+              amount: transaction.amount,
+              color: colors[transaction.category]
+            }
+          ]);
 
-        setData((prev) => ({
-          ...prev,
-          [transaction.category]: {
-            ...prev[transaction.category],
-            spent: prev[transaction.category].spent + transaction.amount
-          }
-        }));
+          setData((prev) => ({
+            ...prev,
+            [transaction.category]: {
+              ...prev[transaction.category],
+              spent: prev[transaction.category].spent + transaction.amount
+            }
+          }));
 
-        currentIndex++;
-      } else {
-        // Reset animation
-        currentIndex = 0;
-        setTransactions([]);
-        setData(categoryData);
-      }
-    }, 1500);
+          currentIndex++;
+        } else {
+          // Reset animation
+          currentIndex = 0;
+          setTransactions([]);
+          setData(categoryData);
+        }
+      }, 1500);
 
-    return () => clearInterval(interval);
+      return () => clearInterval(interval);
+    }, 800);
+
+    return () => clearTimeout(timeout);
   }, [isInView]);
 
   return (

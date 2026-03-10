@@ -9,10 +9,15 @@ export function BudgetPlanningAnimation() {
   useEffect(() => {
     if (!isInView) return;
 
-    const interval = setInterval(() => {
-      setStep((prev) => (prev + 1) % 4);
-    }, 2500);
-    return () => clearInterval(interval);
+    // Délai initial de 800ms avant le démarrage de l'animation
+    const timeout = setTimeout(() => {
+      const interval = setInterval(() => {
+        setStep((prev) => (prev + 1) % 4);
+      }, 2500);
+      return () => clearInterval(interval);
+    }, 800);
+
+    return () => clearTimeout(timeout);
   }, [isInView]);
 
   const categories = [

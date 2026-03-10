@@ -13,21 +13,27 @@ export function SavingsGoalAnimation() {
 
   useEffect(() => {
     if (!isInView) return;
-    const interval = setInterval(() => {
-      setProgress((prev) => {
-        if (prev >= 100) {
-          setShowConfetti(true);
-          setTimeout(() => {
-            setShowConfetti(false);
-            return 0;
-          }, 2000);
-          return 0;
-        }
-        return prev + 5;
-      });
-    }, 200);
 
-    return () => clearInterval(interval);
+    // Délai initial de 800ms avant le démarrage de l'animation
+    const timeout = setTimeout(() => {
+      const interval = setInterval(() => {
+        setProgress((prev) => {
+          if (prev >= 100) {
+            setShowConfetti(true);
+            setTimeout(() => {
+              setShowConfetti(false);
+              return 0;
+            }, 2000);
+            return 0;
+          }
+          return prev + 5;
+        });
+      }, 200);
+
+      return () => clearInterval(interval);
+    }, 800);
+
+    return () => clearTimeout(timeout);
   }, [isInView]);
 
   const milestones = [

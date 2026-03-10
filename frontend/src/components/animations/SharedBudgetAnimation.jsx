@@ -10,10 +10,15 @@ export function SharedBudgetAnimation() {
   useEffect(() => {
     if (!isInView) return;
 
-    const interval = setInterval(() => {
-      setStep((prev) => (prev + 1) % 5);
-    }, 2000);
-    return () => clearInterval(interval);
+    // Délai initial de 800ms avant le démarrage de l'animation
+    const timeout = setTimeout(() => {
+      const interval = setInterval(() => {
+        setStep((prev) => (prev + 1) % 5);
+      }, 2000);
+      return () => clearInterval(interval);
+    }, 800);
+
+    return () => clearTimeout(timeout);
   }, [isInView]);
 
   const members = [
