@@ -102,13 +102,13 @@ export const LandingPage = ({ onGetStarted }) => {
             {/* Desktop Buttons */}
             <div className="hidden md:flex items-center gap-4">
               <button 
-                onClick={onGetStarted}
+                onClick={() => onGetStarted('login')}
                 className="text-gray-600 hover:text-gray-900 px-4 py-2 transition-colors font-medium"
               >
                 Se connecter
               </button>
               <button 
-                onClick={onGetStarted}
+                onClick={() => onGetStarted('register')}
                 className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-bold px-6 py-2 rounded-md transition-all shadow-md"
               >
                 Commencer gratuitement
@@ -149,13 +149,13 @@ export const LandingPage = ({ onGetStarted }) => {
                 ))}
                 <div className="flex flex-col gap-2 pt-4 border-t">
                   <button 
-                    onClick={onGetStarted}
+                    onClick={() => onGetStarted('login')}
                     className="border-2 border-gray-300 text-gray-700 hover:bg-gray-50 font-bold py-2 px-4 rounded-md w-full transition-colors"
                   >
                     Se connecter
                   </button>
                   <button 
-                    onClick={onGetStarted}
+                    onClick={() => onGetStarted('register')}
                     className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-bold py-2 px-4 rounded-md w-full transition-all"
                   >
                     Commencer gratuitement
@@ -192,14 +192,14 @@ export const LandingPage = ({ onGetStarted }) => {
               </p>
               <div className="flex flex-col sm:flex-row gap-4 mb-8">
                 <button 
-                  onClick={onGetStarted}
+                  onClick={() => onGetStarted('register')}
                   className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-bold py-3 px-8 rounded-md flex items-center justify-center gap-2 transition-all shadow-lg hover:shadow-xl"
                 >
                   Créer un compte gratuitement
                   <ArrowRight className="w-5 h-5" />
                 </button>
                 <button 
-                  onClick={onGetStarted}
+                  onClick={() => onGetStarted('login')}
                   className="border-2 border-gray-300 text-gray-700 hover:bg-gray-50 font-bold py-3 px-8 rounded-md transition-all"
                 >
                   Se connecter
@@ -566,7 +566,7 @@ export const LandingPage = ({ onGetStarted }) => {
               Rejoignez des milliers d'utilisateurs qui ont repris le contrôle de leurs finances
             </p>
             <button 
-              onClick={onGetStarted}
+              onClick={() => onGetStarted('register')}
               className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-bold text-lg py-3 px-8 rounded-lg flex items-center justify-center gap-2 mx-auto transition-all shadow-lg hover:shadow-xl"
             >
               Créer un compte gratuitement

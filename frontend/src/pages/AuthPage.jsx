@@ -1,12 +1,18 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Wallet, ArrowLeft } from 'lucide-react';
+import { useLocation } from 'react-router-dom';
 import { LoginForm } from '../components/Auth/LoginForm';
 import { RegisterForm } from '../components/Auth/RegisterForm';
 import { ForgotPasswordForm } from '../components/Auth/ForgotPasswordForm';
 
 export const AuthPage = ({ onBackToHome }) => {
-  const [currentForm, setCurrentForm] = useState('login');
+  const location = useLocation();
+  const [currentForm, setCurrentForm] = useState(location.pathname === '/register' ? 'register' : 'login');
+
+  useEffect(() => {
+    setCurrentForm(location.pathname === '/register' ? 'register' : 'login');
+  }, [location.pathname]);
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState({ type: '', text: '' });
 

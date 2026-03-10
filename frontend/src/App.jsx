@@ -2,9 +2,9 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { AuthProvider } from './context/AuthContext';
 import { useAuth } from './hooks/useAuth';
 import { Navbar } from './components/Common/Navbar';
-import { LoginForm } from './components/Auth/LoginForm';
 import { ProtectedRoute } from './components/Auth/ProtectedRoute';
 import { LandingPage } from './components/LandingPage';
+import { AuthPage } from './pages/AuthPage';
 
 // Pages (à implémenter)
 const DashboardPage = () => (
@@ -29,12 +29,12 @@ const AccountsPage = () => (
 function AppContent() {
   const { isAuthenticated } = useAuth();
 
-  const handleGetStarted = () => {
+  const handleGetStarted = (type = 'login') => {
     // Rediriger selon l'état d'authentification
     if (isAuthenticated) {
       window.location.href = '/dashboard';
     } else {
-      window.location.href = '/login';
+      window.location.href = type === 'register' ? '/register' : '/login';
     }
   };
 
@@ -58,9 +58,19 @@ function AppContent() {
           path="/login" 
           element={
             !isAuthenticated ? (
-              <div className="min-h-screen flex items-center justify-center bg-gray-50">
-                <LoginForm />
-              </div>
+              <AuthPage onBackToHome={() => window.location.href = '/'} />
+            ) : (
+              <Navigate to="/dashboard" replace />
+            )
+          } 
+        />
+
+        {/* Register */}
+        <Route 
+          path="/register" 
+          element={
+            !isAuthenticated ? (
+              <AuthPage onBackToHome={() => window.location.href = '/'} />
             ) : (
               <Navigate to="/dashboard" replace />
             )
