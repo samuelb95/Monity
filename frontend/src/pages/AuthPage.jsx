@@ -28,10 +28,13 @@ export const AuthPage = ({ onBackToHome }) => {
     setMessage({ type: '', text: '' });
     
     try {
+      console.log('📋 Formulaire soumis:', { type: data.type, form: currentForm });
       if (data.type === 'email') {
         if (currentForm === 'login') {
           // Connexion avec email/mot de passe
+          console.log('🔐 Appel signIn');
           const result = await authService.signIn(data.email, data.password);
+          console.log('📊 Résultat signIn:', result);
           if (result.success) {
             setMessage({ type: 'success', text: 'Connexion réussie!' });
             setTimeout(() => {
@@ -42,12 +45,14 @@ export const AuthPage = ({ onBackToHome }) => {
           }
         } else if (currentForm === 'register') {
           // Inscription avec email/mot de passe
+          console.log('📝 Appel signUp');
           const result = await authService.signUp(
             data.email,
             data.password,
             data.firstName,
             data.lastName
           );
+          console.log('📊 Résultat signUp:', result);
           if (result.success) {
             setMessage({ 
               type: 'success', 
@@ -63,6 +68,7 @@ export const AuthPage = ({ onBackToHome }) => {
         }
       } else if (data.type === 'oauth') {
         // Connexion OAuth (Google ou Facebook)
+        console.log('🔐 Appel OAuth:', data.provider);
         let result;
         if (data.provider === 'google') {
           result = await authService.signInWithGoogle();
@@ -70,6 +76,7 @@ export const AuthPage = ({ onBackToHome }) => {
           result = await authService.signInWithFacebook();
         }
         
+        console.log('📊 Résultat OAuth:', result);
         if (result.success) {
           setMessage({ type: 'success', text: `Connexion avec ${data.provider} en cours...` });
         } else {
@@ -77,7 +84,9 @@ export const AuthPage = ({ onBackToHome }) => {
         }
       } else if (data.type === 'forgot') {
         // Réinitialisation du mot de passe
+        console.log('🔄 Appel reset password');
         const result = await authService.resetPassword(data.email);
+        console.log('📊 Résultat reset:', result);
         if (result.success) {
           setMessage({ 
             type: 'success', 
