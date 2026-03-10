@@ -1,9 +1,11 @@
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import { TrendingUp, TrendingDown } from "lucide-react";
+import { useInViewAnimation } from "../../hooks/useInViewAnimation";
 
 export function RealTimeTrackingAnimation() {
   const [transactions, setTransactions] = useState([]);
+  const { ref, isInView } = useInViewAnimation();
 
   const categoryData = {
     Charge: { spent: 0, budget: 1500, color: "#3b82f6" },
@@ -14,6 +16,7 @@ export function RealTimeTrackingAnimation() {
   const [data, setData] = useState(categoryData);
 
   useEffect(() => {
+    if (!isInView) return;
     const possibleTransactions = [
       { category: "Charge", amount: 120, name: "Loyer" },
       { category: "Charge", amount: 80, name: "Électricité" },
@@ -61,10 +64,10 @@ export function RealTimeTrackingAnimation() {
     }, 1500);
 
     return () => clearInterval(interval);
-  }, []);
+  }, [isInView]);
 
   return (
-    <div className="w-full h-full bg-gradient-to-br from-green-50 to-blue-50 p-6 flex items-center justify-center">
+    <div ref={ref} className="w-full h-full bg-gradient-to-br from-green-50 to-blue-50 p-6 flex items-center justify-center">
       <div className="w-full max-w-lg">
         <div className="bg-white rounded-2xl shadow-xl p-6">
           <div className="flex items-center gap-2 mb-6">

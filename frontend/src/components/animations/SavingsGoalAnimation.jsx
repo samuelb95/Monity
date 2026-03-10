@@ -1,15 +1,18 @@
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import { Target, TrendingUp, Sparkles } from "lucide-react";
+import { useInViewAnimation } from "../../hooks/useInViewAnimation";
 
 export function SavingsGoalAnimation() {
   const [progress, setProgress] = useState(0);
   const [showConfetti, setShowConfetti] = useState(false);
+  const { ref, isInView } = useInViewAnimation();
 
   const goal = 2000;
   const currentAmount = Math.floor((progress / 100) * goal);
 
   useEffect(() => {
+    if (!isInView) return;
     const interval = setInterval(() => {
       setProgress((prev) => {
         if (prev >= 100) {
@@ -25,7 +28,7 @@ export function SavingsGoalAnimation() {
     }, 200);
 
     return () => clearInterval(interval);
-  }, []);
+  }, [isInView]);
 
   const milestones = [
     { percentage: 25, label: "25%", amount: 500 },
@@ -35,7 +38,7 @@ export function SavingsGoalAnimation() {
   ];
 
   return (
-    <div className="w-full h-full bg-gradient-to-br from-emerald-50 to-teal-50 p-6 flex items-center justify-center relative overflow-hidden">
+    <div ref={ref} className="w-full h-full bg-gradient-to-br from-emerald-50 to-teal-50 p-6 flex items-center justify-center relative overflow-hidden">
       {/* Confetti effect */}
       {showConfetti && (
         <>

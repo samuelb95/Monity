@@ -1,16 +1,20 @@
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import { Users, ArrowRight } from "lucide-react";
+import { useInViewAnimation } from "../../hooks/useInViewAnimation";
 
 export function SharedBudgetAnimation() {
   const [step, setStep] = useState(0);
+  const { ref, isInView } = useInViewAnimation();
 
   useEffect(() => {
+    if (!isInView) return;
+
     const interval = setInterval(() => {
       setStep((prev) => (prev + 1) % 5);
     }, 2000);
     return () => clearInterval(interval);
-  }, []);
+  }, [isInView]);
 
   const members = [
     { name: "Marie", color: "#f59e0b", avatar: "M", spent: 250 },
@@ -27,7 +31,7 @@ export function SharedBudgetAnimation() {
   }));
 
   return (
-    <div className="w-full h-full bg-gradient-to-br from-purple-50 to-pink-50 p-6 flex items-center justify-center">
+    <div ref={ref} className="w-full h-full bg-gradient-to-br from-purple-50 to-pink-50 p-6 flex items-center justify-center">
       <div className="w-full max-w-lg">
         <div className="bg-white rounded-2xl shadow-xl p-6">
           {/* Header */}

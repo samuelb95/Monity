@@ -1,15 +1,19 @@
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
+import { useInViewAnimation } from "../../hooks/useInViewAnimation";
 
 export function BudgetPlanningAnimation() {
   const [step, setStep] = useState(0);
+  const { ref, isInView } = useInViewAnimation();
 
   useEffect(() => {
+    if (!isInView) return;
+
     const interval = setInterval(() => {
       setStep((prev) => (prev + 1) % 4);
     }, 2500);
     return () => clearInterval(interval);
-  }, []);
+  }, [isInView]);
 
   const categories = [
     { name: "Charge", color: "#3b82f6", amount: 1500, percentage: 60 },
@@ -18,7 +22,7 @@ export function BudgetPlanningAnimation() {
   ];
 
   return (
-    <div className="w-full h-full bg-gradient-to-br from-blue-50 to-purple-50 p-8 flex flex-col items-center justify-center">
+    <div ref={ref} className="w-full h-full bg-gradient-to-br from-blue-50 to-purple-50 p-8 flex flex-col items-center justify-center">
       {/* Montant total */}
       <motion.div
         initial={{ scale: 0, opacity: 0 }}
