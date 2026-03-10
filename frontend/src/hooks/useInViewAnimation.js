@@ -8,10 +8,12 @@ export const useInViewAnimation = () => {
   useEffect(() => {
     const observer = new IntersectionObserver(
       ([entry]) => {
-        if (entry.isIntersecting) {
+        if (entry.isIntersecting && !hasBeenInView) {
+          // Ne déclencher l'animation que la première fois
           setIsInView(true);
           setHasBeenInView(true);
-        } else {
+        } else if (!entry.isIntersecting && hasBeenInView) {
+          // Une fois que l'élément a été vu, ne pas relancer l'animation
           setIsInView(false);
         }
       },
@@ -29,7 +31,7 @@ export const useInViewAnimation = () => {
         observer.unobserve(ref.current);
       }
     };
-  }, []);
+  }, [hasBeenInView]);
 
   return { ref, isInView, hasBeenInView };
 };

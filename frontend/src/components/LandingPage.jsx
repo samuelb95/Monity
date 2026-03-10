@@ -286,11 +286,11 @@ export const LandingPage = ({ onGetStarted }) => {
       </motion.section>
 
       {/* Problem Section */}
-      <section className="relative py-20 bg-gradient-to-b from-white via-blue-50 to-white overflow-hidden">
-        {/* Decorative background elements */}
-        <div className="absolute inset-0 overflow-hidden">
-          <div className="absolute -top-40 -right-40 w-80 h-80 bg-red-200 rounded-full blur-3xl opacity-30" />
-          <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-orange-200 rounded-full blur-3xl opacity-30" />
+      <section className="relative py-24 bg-white overflow-hidden">
+        {/* Decorative background elements - maintaining existing theme */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          <div className="absolute top-0 right-0 w-96 h-96 bg-blue-100 rounded-full blur-3xl opacity-20" />
+          <div className="absolute bottom-0 left-0 w-96 h-96 bg-purple-100 rounded-full blur-3xl opacity-20" />
         </div>
 
         <div className="container mx-auto px-4 relative z-10">
@@ -307,13 +307,13 @@ export const LandingPage = ({ onGetStarted }) => {
                 whileInView={{ opacity: 1, scale: 1 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.4 }}
-                className="inline-flex items-center gap-2 bg-red-100 text-red-700 px-4 py-2 rounded-full mb-6 font-medium"
+                className="inline-flex items-center gap-2 bg-blue-100 text-blue-700 px-4 py-2 rounded-full mb-6 font-medium"
               >
-                <div className="w-3 h-3 bg-red-600 rounded-full animate-pulse" />
+                <div className="w-3 h-3 bg-blue-600 rounded-full animate-pulse" />
                 Le défi actuel
               </motion.div>
               <h2 className="text-5xl md:text-6xl font-bold mb-8 text-gray-900 leading-tight">
-                Gérer son budget, c'est <span className="bg-gradient-to-r from-red-600 to-orange-600 bg-clip-text text-transparent">plus complexe</span> que jamais
+                Gérer son budget, c'est <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">plus complexe</span> que jamais
               </h2>
             </div>
 
@@ -324,11 +324,11 @@ export const LandingPage = ({ onGetStarted }) => {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: 0.1, duration: 0.5 }}
-                className="group bg-white rounded-2xl p-8 shadow-lg hover:shadow-2xl transition-all border-l-4 border-red-500"
+                className="group bg-gradient-to-br from-blue-50 to-blue-100 rounded-2xl p-8 shadow-md hover:shadow-lg transition-all border border-blue-200"
               >
                 <div className="mb-4 text-5xl">📊</div>
                 <h3 className="text-xl font-bold mb-3 text-gray-900">Trop de sources d'argent</h3>
-                <p className="text-gray-600 leading-relaxed">
+                <p className="text-gray-700 leading-relaxed">
                   Salaire, revenus supplémentaires, cadeaux... Tout se mélange et il devient impossible de savoir où part votre argent.
                 </p>
               </motion.div>
@@ -339,11 +339,11 @@ export const LandingPage = ({ onGetStarted }) => {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: 0.2, duration: 0.5 }}
-                className="group bg-white rounded-2xl p-8 shadow-lg hover:shadow-2xl transition-all border-l-4 border-orange-500"
+                className="group bg-gradient-to-br from-purple-50 to-purple-100 rounded-2xl p-8 shadow-md hover:shadow-lg transition-all border border-purple-200"
               >
                 <div className="mb-4 text-5xl">💸</div>
                 <h3 className="text-xl font-bold mb-3 text-gray-900">Dépenses imprévisibles</h3>
-                <p className="text-gray-600 leading-relaxed">
+                <p className="text-gray-700 leading-relaxed">
                   Abonnements oubliés, réparations urgentes, achats impulsifs... qui dépassent votre budget sans prévenir.
                 </p>
               </motion.div>
@@ -354,11 +354,11 @@ export const LandingPage = ({ onGetStarted }) => {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: 0.3, duration: 0.5 }}
-                className="group bg-white rounded-2xl p-8 shadow-lg hover:shadow-2xl transition-all border-l-4 border-yellow-500"
+                className="group bg-gradient-to-br from-indigo-50 to-indigo-100 rounded-2xl p-8 shadow-md hover:shadow-lg transition-all border border-indigo-200"
               >
                 <div className="mb-4 text-5xl">😰</div>
                 <h3 className="text-xl font-bold mb-3 text-gray-900">Manque de visibilité</h3>
-                <p className="text-gray-600 leading-relaxed">
+                <p className="text-gray-700 leading-relaxed">
                   Pas de vue d'ensemble claire. Stress constant et sentiment de perte de contrôle sur vos finances.
                 </p>
               </motion.div>
@@ -370,20 +370,23 @@ export const LandingPage = ({ onGetStarted }) => {
               whileInView={{ opacity: 1, scale: 1 }}
               viewport={{ once: true }}
               transition={{ delay: 0.4, duration: 0.5 }}
-              className="bg-gradient-to-r from-red-50 to-orange-50 rounded-2xl p-8 md:p-12 border-2 border-red-200"
+              className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl p-8 md:p-12 text-white"
             >
               <div className="grid md:grid-cols-3 gap-8">
                 <div className="text-center">
-                  <div className="text-4xl font-bold text-red-600 mb-2">Stress</div>
-                  <p className="text-gray-700">Anxiété permanente sur vos dépenses</p>
+                  <div className="text-4xl font-bold mb-3">😟</div>
+                  <div className="text-2xl font-bold mb-2">Stress</div>
+                  <p className="text-blue-100">Anxiété permanente sur vos dépenses</p>
                 </div>
-                <div className="text-center border-l-2 border-r-2 border-red-200">
-                  <div className="text-4xl font-bold text-orange-600 mb-2">Dépassements</div>
-                  <p className="text-gray-700">Budgets explosés sans comprendre pourquoi</p>
+                <div className="text-center border-l border-r border-blue-300">
+                  <div className="text-4xl font-bold mb-3">📉</div>
+                  <div className="text-2xl font-bold mb-2">Dépassements</div>
+                  <p className="text-blue-100">Budgets explosés sans comprendre pourquoi</p>
                 </div>
                 <div className="text-center">
-                  <div className="text-4xl font-bold text-yellow-600 mb-2">Confusion</div>
-                  <p className="text-gray-700">Impossible de planifier ou économiser</p>
+                  <div className="text-4xl font-bold mb-3">🌀</div>
+                  <div className="text-2xl font-bold mb-2">Confusion</div>
+                  <p className="text-blue-100">Impossible de planifier ou économiser</p>
                 </div>
               </div>
             </motion.div>
