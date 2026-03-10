@@ -1,4 +1,5 @@
-import { BrowserRouter as Router, Routes, Route, Navigate, useEffect } from 'react-router-dom';
+import { useEffect } from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import { useAuth } from './hooks/useAuth';
 import { Navbar } from './components/Common/Navbar';
