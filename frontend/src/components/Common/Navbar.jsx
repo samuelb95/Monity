@@ -1,11 +1,18 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
+import { supabase } from '../../config/supabase';
 
 export const Navbar = () => {
   const navigate = useNavigate();
   const { user, logout, isAuthenticated } = useAuth();
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    try {
+      // Logout global Supabase (nettoie aussi les sessions OAuth)
+      await supabase.auth.signOut({ scope: 'global' });
+    } catch (err) {
+      console.error('Erreur logout global:', err);
+    }
     logout();
     navigate('/login');
   };
