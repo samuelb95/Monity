@@ -18,13 +18,20 @@ L'erreur `Tentative N: user=false, error=Auth session missing!` signifie que Sup
 
 ### 1. Vérifier les Redirect URLs
 
-**Pour Google:**
+**Pour Google: (IMPORTANT - doit être exact)**
 ```
 https://console.cloud.google.com/apis/credentials
 ```
-Dans ta config Google OAuth:
-- Authorized JavaScript origins: `http://localhost:5173`
-- Authorized redirect URIs: `http://localhost:5173/auth/callback`
+Clique sur **ta app OAuth 2.0 → Modifier l'application OAuth**
+
+Dans **URIs de redirection autorisés** (Authorized redirect URIs):
+- ✅ `http://localhost:5173/auth/callback`
+- ✅ `http://localhost:5173`
+
+⚠️ **IMPORTANT**: Il faut que ces URLs correspondent EXACTEMENT à ce que Supabase renvoie. Vérifier aussi dans:
+- Supabase Dashboard → Authentication → Providers → Google
+- Noter le "Redirect URL" fourni par Supabase
+- L'ajouter dans Google Cloud Console si différent
 
 **Pour Facebook:**
 ```
@@ -38,11 +45,17 @@ Dans ta config Facebook OAuth:
 
 Aller à: **Authentication → Providers → Google/Facebook**
 
-Vérifier que:
-- [ ] Google Client ID est correct
-- [ ] Google Client Secret est correct
-- [ ] Facebook App ID est correct
-- [ ] Facebook App Secret est correct
+#### Pour Google:
+- [ ] Google Client ID correct
+- [ ] Google Client Secret correct
+- [ ] **Noter le "Redirect URL" affiché par Supabase**
+- [ ] Ajouter ce Redirect URL dans Google Cloud Console
+
+#### Pour Facebook:
+- [ ] Facebook App ID correct
+- [ ] Facebook App Secret correct
+- [ ] **Copier le Redirect URL depuis Supabase**
+- [ ] Ajouter dans Facebook Developers sous "Valid OAuth Redirect URIs"
 
 ### 3. Vérifier les Redirect URLs Supabase
 
@@ -52,7 +65,11 @@ Ajouter:
 ```
 http://localhost:5173/auth/callback
 http://localhost:5173
+http://localhost:5173/login
+http://localhost:5173/register
 ```
+
+**Ces URLs doivent être configurées AVANT de tester OAuth!**
 
 ### 4. Alternative: Utiliser une URL publique pendant le dev
 
@@ -71,14 +88,28 @@ ngrok http 5173
 
 Puis accéder via: `https://xxxxx.ngrok.io/login`
 
-## ✅ Test Email/Password
-
-En attendant que OAuth fonctionne, tu peux tester:
+## ✅ Test Email/Password (Fonctionne immédiatement)
 
 1. Aller sur `http://localhost:5173/register`
 2. Créer un compte avec email/password
-3. Vérifier l'email reçu (ou check Supabase Dashboard SQL Editor)
+3. Vérifier l'email reçu (ou check Supabase Dashboard)
 4. Aller sur `/login` et te connecter
+
+**C'est une bonne façon de tester le site sans attendre que OAuth soit configuré.**
+
+## ⚠️ Problème courant: "Auth session missing!"
+
+Si tu vois cette erreur avec Google ou Facebook:
+1. C'est un problème de Redirect URLs
+2. Google et Facebook ne savent pas où rediriger après authentification
+3. **Solution:**
+   - Vérifier dans Google Cloud Console / Facebook Developers
+   - Ajouter exactement le Redirect URL que Supabase propose
+   - Attendre quelques minutes que les changements prennent effet
+   - **Tester en incognito** (cache navigateur peut causer des problèmes)
+
+**Facebook fonctionne = tes URLs sont bien configurées**
+**Google ne fonctionne = vérifier Google Cloud Console**
 
 ## 📝 Logs pour déboguer
 
