@@ -5,6 +5,7 @@ import { useLocation } from 'react-router-dom';
 import { LoginForm } from '../components/Auth/LoginForm';
 import { RegisterForm } from '../components/Auth/RegisterForm';
 import { ForgotPasswordForm } from '../components/Auth/ForgotPasswordForm';
+import { authService } from '../services/authService';
 
 export const AuthPage = ({ onBackToHome }) => {
   const location = useLocation();
@@ -13,6 +14,7 @@ export const AuthPage = ({ onBackToHome }) => {
   useEffect(() => {
     setCurrentForm(location.pathname === '/register' ? 'register' : 'login');
   }, [location.pathname]);
+  
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState({ type: '', text: '' });
 
@@ -23,37 +25,70 @@ export const AuthPage = ({ onBackToHome }) => {
 
   const handleSubmit = async (data) => {
     setIsLoading(true);
+    setMessage({ type: '', text: '' });
+    
     try {
-      // Simulated API call - à remplacer avec Supabase
-      console.log('Form submission:', data);
-      
-      // Simulated delay
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
       if (data.type === 'email') {
         if (currentForm === 'login') {
-          setMessage({ type: 'success', text: 'Connexion réussie!' });
-          // Redirect to dashboard after success
-          setTimeout(() => {
-            // Navigate to dashboard
-            window.location.href = '/dashboard';
-          }, 1000);
+          // Connexion avec email/mot de passe
+          const result = await authService.signIn(data.email, data.password);
+          if (result.success) {
+            setMessage({ type: 'success', text: 'Connexion réussie!' });
+            setTimeout(() => {
+              window.location.href = '/dashboard';
+            }, 1000);
+          } else {
+            setMessage({ type: 'error', text: result.error || 'Erreur de connexion' });
+          }
         } else if (currentForm === 'register') {
-          setMessage({ type: 'success', text: 'Compte créé avec succès!' });
-          setTimeout(() => {
-            window.location.href = '/dashboard';
-          }, 1000);
+          // Inscription avec email/mot de passe
+          const result = await authService.signUp(
+            data.email,
+            data.password,
+            data.firstName,
+            data.lastName
+          );
+          if (result.success) {
+            setMessage({ 
+              type: 'success', 
+              text: 'Compte créé! Vérifiez votre email pour confirmer votre inscription.' 
+            });
+            // Optionnel: rediriger après un délai
+            setTimeout(() => {
+              window.location.href = '/login';
+            }, 2000);
+          } else {
+            setMessage({ type: 'error', text: result.error || 'Erreur lors de l\'inscription' });
+          }
         }
       } else if (data.type === 'oauth') {
-        setMessage({ type: 'success', text: `Connexion avec ${data.provider} en cours...` });
-        setTimeout(() => {
-          window.location.href = '/dashboard';
-        }, 1000);
+        // Connexion OAuth (Google ou Facebook)
+        let result;
+        if (data.provider === 'google') {
+          result = await authService.signInWithGoogle();
+        } else if (data.provider === 'facebook') {
+          result = await authService.signInWithFacebook();
+        }
+        
+        if (result.success) {
+          setMessage({ type: 'success', text: `Connexion avec ${data.provider} en cours...` });
+        } else {
+          setMessage({ type: 'error', text: result.error || `Erreur lors de la connexion avec ${data.provider}` });
+        }
       } else if (data.type === 'forgot') {
-        setMessage({ type: 'success', text: 'Email de réinitialisation envoyé!' });
+        // Réinitialisation du mot de passe
+        const result = await authService.resetPassword(data.email);
+        if (result.success) {
+          setMessage({ 
+            type: 'success', 
+            text: 'Email de réinitialisation envoyé! Vérifiez votre boîte de réception.' 
+          });
+        } else {
+          setMessage({ type: 'error', text: result.error || 'Erreur lors de la réinitialisation' });
+        }
       }
     } catch (error) {
-      setMessage({ type: 'error', text: 'Une erreur est survenue. Veuillez réessayer.' });
+      setMessage({ type: 'error', text: error.message || 'Une erreur est survenue. Veuillez réessayer.' });
     } finally {
       setIsLoading(false);
     }
