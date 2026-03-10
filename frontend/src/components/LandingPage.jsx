@@ -392,49 +392,92 @@ export const LandingPage = ({ onGetStarted }) => {
       </section>
 
       {/* Features Section */}
-      <section className="py-20 bg-gray-50">
-        <div className="container mx-auto px-4">
+      <section className="relative py-24 bg-gradient-to-b from-white via-blue-50 to-white overflow-hidden">
+        {/* Decorative elements */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          <div className="absolute top-20 right-0 w-96 h-96 bg-blue-200 rounded-full blur-3xl opacity-20" />
+          <div className="absolute bottom-0 left-0 w-96 h-96 bg-purple-200 rounded-full blur-3xl opacity-20" />
+        </div>
+
+        <div className="container mx-auto px-4 relative z-10">
           <motion.div
-            initial={{ opacity: 0 }}
-            whileInView={{ opacity: 1 }}
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            className="text-center mb-16"
+            transition={{ duration: 0.6 }}
+            className="text-center mb-20"
           >
-            <h2 className="text-4xl font-bold mb-4 text-gray-900">Une solution pensée pour vous</h2>
+            <motion.div
+              initial={{ opacity: 0, scale: 0.8 }}
+              whileInView={{ opacity: 1, scale: 1 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.4 }}
+              className="inline-flex items-center gap-2 bg-blue-100 text-blue-700 px-4 py-2 rounded-full mb-8 font-medium"
+            >
+              <div className="w-3 h-3 bg-blue-600 rounded-full animate-pulse" />
+              Fonctionnalités puissantes
+            </motion.div>
+            <h2 className="text-5xl md:text-6xl font-bold mb-6 text-gray-900 leading-tight">Une solution pensée pour vous</h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
               Découvrez comment notre application simplifie la gestion de vos finances personnelles et partagées.
             </p>
           </motion.div>
 
-          <div className="max-w-6xl mx-auto space-y-20">
+          <div className="max-w-7xl mx-auto space-y-24">
             {features.map((feature, index) => (
               <motion.div
                 key={index}
-                initial={{ opacity: 0, y: 50 }}
+                initial={{ opacity: 0, y: 60 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
-                transition={{ delay: index * 0.1 }}
+                transition={{ delay: index * 0.15, duration: 0.6 }}
               >
-                <div className="bg-white rounded-lg overflow-hidden shadow-md hover:shadow-lg transition-shadow">
-                  <div className={`grid md:grid-cols-2 gap-8 ${index % 2 === 1 ? 'md:grid-flow-col-dense' : ''}`}>
-                    <div className={`p-8 flex flex-col justify-center ${index % 2 === 1 ? 'md:col-start-2' : ''}`}>
-                      <div className="text-blue-600 mb-4">
+                <div className="bg-white rounded-3xl overflow-hidden shadow-xl hover:shadow-2xl transition-all duration-300 border border-gray-100">
+                  <div className={`grid md:grid-cols-2 gap-0 ${index % 2 === 1 ? 'md:grid-flow-col-dense' : ''}`}>
+                    <motion.div 
+                      className={`p-10 md:p-14 flex flex-col justify-center ${index % 2 === 1 ? 'md:col-start-2' : ''}`}
+                      initial={{ opacity: 0, x: index % 2 === 0 ? -30 : 30 }}
+                      whileInView={{ opacity: 1, x: 0 }}
+                      viewport={{ once: true }}
+                      transition={{ delay: index * 0.15 + 0.1, duration: 0.6 }}
+                    >
+                      <motion.div 
+                        className="w-16 h-16 bg-gradient-to-br from-blue-100 to-purple-100 rounded-2xl flex items-center justify-center mb-6 text-blue-600"
+                        whileHover={{ scale: 1.1, rotate: 5 }}
+                        transition={{ type: "spring", stiffness: 300 }}
+                      >
                         {feature.icon}
-                      </div>
-                      <h3 className="text-3xl font-bold mb-4 text-gray-900">{feature.title}</h3>
-                      <p className="text-lg text-gray-600 leading-relaxed">
+                      </motion.div>
+                      <h3 className="text-4xl font-bold mb-6 text-gray-900">{feature.title}</h3>
+                      <p className="text-lg text-gray-600 leading-relaxed mb-8">
                         {feature.description}
                       </p>
-                    </div>
-                    <div className={`relative min-h-[500px] bg-gradient-to-br from-blue-100 to-purple-100 rounded-lg overflow-hidden flex items-center justify-center ${index % 2 === 1 ? 'md:col-start-1 md:row-start-1' : ''}`}>
-                      <div className="absolute top-4 right-4 bg-white/95 backdrop-blur-sm px-3 py-1 rounded-full text-sm shadow-lg z-10">
-                        💡 Animation interactive
+                      <motion.div
+                        initial={{ opacity: 0, x: -20 }}
+                        whileInView={{ opacity: 1, x: 0 }}
+                        viewport={{ once: true }}
+                        transition={{ delay: index * 0.15 + 0.2 }}
+                        className="inline-flex items-center gap-2 text-blue-600 font-semibold hover:gap-3 transition-all group"
+                      >
+                        <span>Explorez cette fonctionnalité</span>
+                        <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                      </motion.div>
+                    </motion.div>
+                    <motion.div 
+                      className={`relative min-h-[500px] bg-gradient-to-br from-blue-100 to-purple-100 rounded-3xl overflow-hidden flex items-center justify-center ${index % 2 === 1 ? 'md:col-start-1 md:row-start-1' : ''}`}
+                      initial={{ opacity: 0, scale: 0.95 }}
+                      whileInView={{ opacity: 1, scale: 1 }}
+                      viewport={{ once: true }}
+                      transition={{ delay: index * 0.15 + 0.2, duration: 0.6 }}
+                    >
+                      <div className="absolute top-6 right-6 bg-white/80 backdrop-blur-md px-4 py-2 rounded-full text-sm shadow-lg z-10 font-medium text-gray-700">
+                        ✨ Animation interactive
                       </div>
                       {index === 0 && <BudgetPlanningAnimation />}
                       {index === 1 && <RealTimeTrackingAnimation />}
                       {index === 2 && <SharedBudgetAnimation />}
                       {index === 3 && <SavingsGoalAnimation />}
-                    </div>
+                    </motion.div>
                   </div>
                 </div>
               </motion.div>
