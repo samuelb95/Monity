@@ -6,6 +6,7 @@ import { Navbar } from './components/Common/Navbar';
 import { ProtectedRoute } from './components/Auth/ProtectedRoute';
 import { LandingPage } from './components/LandingPage';
 import { AuthPage } from './pages/AuthPage';
+import { AuthCallbackPage } from './pages/AuthCallbackPage';
 import { supabase } from './config/supabase';
 
 // Pages (à implémenter)
@@ -113,6 +114,12 @@ function AppContent() {
               <Navigate to="/dashboard" replace />
             )
           } 
+        />
+
+        {/* OAuth Callback */}
+        <Route 
+          path="/auth/callback" 
+          element={<AuthCallbackPage />}
         />
 
         {/* Pages protégées */}
