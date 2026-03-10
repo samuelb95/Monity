@@ -6,27 +6,30 @@ import { useInViewAnimation } from "../../hooks/useInViewAnimation";
 export function SavingsGoalAnimation() {
   const [progress, setProgress] = useState(0);
   const [showConfetti, setShowConfetti] = useState(false);
-  const { ref, isInView } = useInViewAnimation();
+  const [animationComplete, setAnimationComplete] = useState(false);
+  const { ref, isInView, hasBeenInView } = useInViewAnimation();
 
   const goal = 2000;
   const currentAmount = Math.floor((progress / 100) * goal);
 
   useEffect(() => {
-    if (!isInView) return;
+    if (!hasBeenInView || animationComplete) return;
 
     // Délai initial de 800ms avant le démarrage de l'animation
     const timeout = setTimeout(() => {
       const interval = setInterval(() => {
         setProgress((prev) => {
-          if (prev >= 100) {
+          const nextProgress = prev + 5;
+          if (nextProgress >= 100) {
             setShowConfetti(true);
             setTimeout(() => {
               setShowConfetti(false);
-              return 0;
             }, 2000);
-            return 0;
+            clearInterval(interval);
+            setAnimationComplete(true);
+            return 100;
           }
-          return prev + 5;
+          return nextProgress;
         });
       }, 200);
 
@@ -34,7 +37,7 @@ export function SavingsGoalAnimation() {
     }, 800);
 
     return () => clearTimeout(timeout);
-  }, [isInView]);
+  }, [hasBeenInView, animationComplete]);
 
   const milestones = [
     { percentage: 25, label: "25%", amount: 500 },

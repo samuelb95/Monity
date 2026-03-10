@@ -5,21 +5,29 @@ import { useInViewAnimation } from "../../hooks/useInViewAnimation";
 
 export function SharedBudgetAnimation() {
   const [step, setStep] = useState(0);
-  const { ref, isInView } = useInViewAnimation();
+  const [animationComplete, setAnimationComplete] = useState(false);
+  const { ref, isInView, hasBeenInView } = useInViewAnimation();
 
   useEffect(() => {
-    if (!isInView) return;
+    if (!hasBeenInView || animationComplete) return;
 
     // Délai initial de 800ms avant le démarrage de l'animation
     const timeout = setTimeout(() => {
+      let currentStep = 0;
       const interval = setInterval(() => {
-        setStep((prev) => (prev + 1) % 5);
+        currentStep++;
+        setStep(currentStep);
+        // Arrêter après 5 étapes (0, 1, 2, 3, 4)
+        if (currentStep >= 4) {
+          clearInterval(interval);
+          setAnimationComplete(true);
+        }
       }, 2000);
       return () => clearInterval(interval);
     }, 800);
 
     return () => clearTimeout(timeout);
-  }, [isInView]);
+  }, [hasBeenInView, animationComplete]);
 
   const members = [
     { name: "Marie", color: "#f59e0b", avatar: "M", spent: 250 },

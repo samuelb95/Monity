@@ -4,21 +4,29 @@ import { useInViewAnimation } from "../../hooks/useInViewAnimation";
 
 export function BudgetPlanningAnimation() {
   const [step, setStep] = useState(0);
-  const { ref, isInView } = useInViewAnimation();
+  const [animationComplete, setAnimationComplete] = useState(false);
+  const { ref, isInView, hasBeenInView } = useInViewAnimation();
 
   useEffect(() => {
-    if (!isInView) return;
+    if (!hasBeenInView || animationComplete) return;
 
     // Délai initial de 800ms avant le démarrage de l'animation
     const timeout = setTimeout(() => {
+      let currentStep = 0;
       const interval = setInterval(() => {
-        setStep((prev) => (prev + 1) % 4);
+        currentStep++;
+        setStep(currentStep);
+        // Arrêter après 4 cycles (0, 1, 2, 3)
+        if (currentStep >= 3) {
+          clearInterval(interval);
+          setAnimationComplete(true);
+        }
       }, 2500);
       return () => clearInterval(interval);
     }, 800);
 
     return () => clearTimeout(timeout);
-  }, [isInView]);
+  }, [hasBeenInView, animationComplete]);
 
   const categories = [
     { name: "Charge", color: "#3b82f6", amount: 1500, percentage: 60 },

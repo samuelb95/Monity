@@ -5,7 +5,8 @@ import { useInViewAnimation } from "../../hooks/useInViewAnimation";
 
 export function RealTimeTrackingAnimation() {
   const [transactions, setTransactions] = useState([]);
-  const { ref, isInView } = useInViewAnimation();
+  const [animationComplete, setAnimationComplete] = useState(false);
+  const { ref, isInView, hasBeenInView } = useInViewAnimation();
 
   const categoryData = {
     Charge: { spent: 0, budget: 1500, color: "#3b82f6" },
@@ -16,7 +17,7 @@ export function RealTimeTrackingAnimation() {
   const [data, setData] = useState(categoryData);
 
   useEffect(() => {
-    if (!isInView) return;
+    if (!hasBeenInView || animationComplete) return;
     const possibleTransactions = [
       { category: "Charge", amount: 120, name: "Loyer" },
       { category: "Charge", amount: 80, name: "Électricité" },
@@ -59,10 +60,9 @@ export function RealTimeTrackingAnimation() {
 
           currentIndex++;
         } else {
-          // Reset animation
-          currentIndex = 0;
-          setTransactions([]);
-          setData(categoryData);
+          // Animation complète
+          clearInterval(interval);
+          setAnimationComplete(true);
         }
       }, 1500);
 
@@ -70,7 +70,7 @@ export function RealTimeTrackingAnimation() {
     }, 800);
 
     return () => clearTimeout(timeout);
-  }, [isInView]);
+  }, [hasBeenInView, animationComplete]);
 
   return (
     <div ref={ref} className="w-full h-full bg-gradient-to-br from-green-50 to-blue-50 p-6 flex items-center justify-center">
