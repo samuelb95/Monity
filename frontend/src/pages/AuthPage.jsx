@@ -36,10 +36,11 @@ export const AuthPage = ({ onBackToHome }) => {
           const result = await authService.signIn(data.email, data.password);
           console.log('📊 Résultat signIn:', result);
           if (result.success) {
-            setMessage({ type: 'success', text: 'Connexion réussie!' });
+            setMessage({ type: 'success', text: 'Connexion réussie! Redirection en cours...' });
+            // Attendre un peu pour laisser le contexte se mettre à jour
             setTimeout(() => {
               window.location.href = '/dashboard';
-            }, 1000);
+            }, 1500);
           } else {
             setMessage({ type: 'error', text: result.error || 'Erreur de connexion' });
           }
@@ -56,9 +57,9 @@ export const AuthPage = ({ onBackToHome }) => {
           if (result.success) {
             setMessage({ 
               type: 'success', 
-              text: 'Compte créé! Vérifiez votre email pour confirmer votre inscription.' 
+              text: 'Compte créé! Vérifiez votre email pour confirmer votre inscription, puis connectez-vous.' 
             });
-            // Optionnel: rediriger après un délai
+            // Rediriger vers login après 2 secondes
             setTimeout(() => {
               window.location.href = '/login';
             }, 2000);

@@ -1,10 +1,11 @@
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, useEffect } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import { useAuth } from './hooks/useAuth';
 import { Navbar } from './components/Common/Navbar';
 import { ProtectedRoute } from './components/Auth/ProtectedRoute';
 import { LandingPage } from './components/LandingPage';
 import { AuthPage } from './pages/AuthPage';
+import { supabase } from './config/supabase';
 
 // Pages (à implémenter)
 const DashboardPage = () => (
@@ -28,6 +29,27 @@ const AccountsPage = () => (
 // Component interne pour la navigation
 function AppContent() {
   const { isAuthenticated } = useAuth();
+
+  // Gérer le callback OAuth
+  useEffect(() => {
+    const handleOAuthCallback = async () => {
+      const hash = window.location.hash;
+      if (hash.includes('access_token')) {
+        console.log('🔐 OAuth callback détecté');
+        // Attendre que Supabase traite le callback
+        const { data, error } = await supabase.auth.getSession();
+        console.log('📊 Session après OAuth:', { data, error });
+        if (data.session) {
+          console.log('✅ Session établie, redirection vers dashboard');
+          setTimeout(() => {
+            window.location.href = '/dashboard';
+          }, 500);
+        }
+      }
+    };
+
+    handleOAuthCallback();
+  }, []);
 
   const handleGetStarted = (type = 'login') => {
     // Rediriger selon l'état d'authentification
