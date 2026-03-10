@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import { useAuth } from './hooks/useAuth';
 import { Navbar } from './components/Common/Navbar';
@@ -29,28 +29,43 @@ const AccountsPage = () => (
 
 // Component interne pour la navigation
 function AppContent() {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
+  const navigate = useNavigate();
 
-  // Gérer le callback OAuth
+  // Gérer le callback OAuth et redirection après authentification
   useEffect(() => {
     const handleOAuthCallback = async () => {
       const hash = window.location.hash;
-      if (hash.includes('access_token')) {
+      const searchParams = new URLSearchParams(window.location.search);
+      
+      // Vérifier si c'est un callback OAuth
+      if (hash.includes('access_token') || searchParams.has('code')) {
         console.log('🔐 OAuth callback détecté');
+        // Nettoyer l'URL
+        window.history.replaceState({}, document.title, window.location.pathname);
+        
         // Attendre que Supabase traite le callback
+        await new Promise(resolve => setTimeout(resolve, 500));
+        
         const { data, error } = await supabase.auth.getSession();
-        console.log('📊 Session après OAuth:', { data, error });
+        console.log('📊 Session après OAuth:', { session: !!data.session, error });
         if (data.session) {
           console.log('✅ Session établie, redirection vers dashboard');
-          setTimeout(() => {
-            window.location.href = '/dashboard';
-          }, 500);
+          navigate('/dashboard');
         }
       }
     };
 
     handleOAuthCallback();
-  }, []);
+  }, [navigate]);
+
+  // Rediriger vers dashboard si authentifié
+  useEffect(() => {
+    if (isAuthenticated && user) {
+      console.log('✅ Utilisateur authentifié detected, redirection');
+      navigate('/dashboard');
+    }
+  }, [isAuthenticated, user, navigate]);
 
   const handleGetStarted = (type = 'login') => {
     // Rediriger selon l'état d'authentification
