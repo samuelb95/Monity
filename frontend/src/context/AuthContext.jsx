@@ -1,5 +1,6 @@
 import { createContext, useState, useCallback, useEffect } from 'react';
-import authService from '../services/authService';
+import { authService } from '../services/authService';
+import { supabase } from '../config/supabase';
 
 export const AuthContext = createContext();
 
@@ -8,23 +9,48 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Vérifier si l'utilisateur est connecté au chargement
+  // Vérifier si l'utilisateur est connecté au chargement et écouter les changements
   useEffect(() => {
-    const currentUser = authService.getCurrentUser();
-    if (currentUser) {
-      setUser(currentUser);
-    }
-    setLoading(false);
+    const initializeAuth = async () => {
+      try {
+        // Récupérer l'utilisateur actuel
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          setUser(user);
+        }
+      } catch (err) {
+        console.error('Erreur lors de la vérification de l\'utilisateur:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    initializeAuth();
+
+    // Écouter les changements d'authentification
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      console.log('Auth state changed:', event, session?.user?.email);
+      setUser(session?.user || null);
+    });
+
+    return () => {
+      subscription?.unsubscribe();
+    };
   }, []);
 
-  const register = useCallback(async (email, username, password, firstName, lastName) => {
+  const register = useCallback(async (email, password, firstName, lastName) => {
     try {
       setError(null);
-      const data = await authService.register(email, username, password, firstName, lastName);
-      setUser(data.user);
-      return data;
+      const result = await authService.signUp(email, password, firstName, lastName);
+      if (result.success) {
+        setUser(result.data.user);
+        return result.data;
+      } else {
+        setError(result.error);
+        throw new Error(result.error);
+      }
     } catch (err) {
-      const errorMessage = err.response?.data?.error || 'Erreur lors de l\'inscription';
+      const errorMessage = err.message || 'Erreur lors de l\'inscription';
       setError(errorMessage);
       throw err;
     }
@@ -33,20 +59,29 @@ export const AuthProvider = ({ children }) => {
   const login = useCallback(async (email, password) => {
     try {
       setError(null);
-      const data = await authService.login(email, password);
-      setUser(data.user);
-      return data;
+      const result = await authService.signIn(email, password);
+      if (result.success) {
+        setUser(result.data.user);
+        return result.data;
+      } else {
+        setError(result.error);
+        throw new Error(result.error);
+      }
     } catch (err) {
-      const errorMessage = err.response?.data?.error || 'Erreur lors de la connexion';
+      const errorMessage = err.message || 'Erreur lors de la connexion';
       setError(errorMessage);
       throw err;
     }
   }, []);
 
-  const logout = useCallback(() => {
-    authService.logout();
-    setUser(null);
-    setError(null);
+  const logout = useCallback(async () => {
+    try {
+      await authService.signOut();
+      setUser(null);
+      setError(null);
+    } catch (err) {
+      console.error('Erreur lors de la déconnexion:', err);
+    }
   }, []);
 
   const value = {
