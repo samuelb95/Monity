@@ -1,57 +1,116 @@
-import api from './api';
+import { supabase } from '../config/supabase';
 
-const authService = {
-  register: async (email, username, password, firstName = '', lastName = '') => {
-    const response = await api.post('/auth/register', {
-      email,
-      username,
-      password,
-      first_name: firstName,
-      last_name: lastName,
-    });
-    
-    if (response.data.access_token) {
-      localStorage.setItem('access_token', response.data.access_token);
-      localStorage.setItem('refresh_token', response.data.refresh_token);
-      localStorage.setItem('user', JSON.stringify(response.data.user));
+export const authService = {
+  // Inscription avec email/mot de passe
+  async signUp(email, password, firstName, lastName) {
+    try {
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            firstName,
+            lastName,
+          },
+        },
+      });
+
+      if (error) throw error;
+      return { success: true, data };
+    } catch (error) {
+      return { success: false, error: error.message };
     }
-    
-    return response.data;
   },
 
-  login: async (email, password) => {
-    const response = await api.post('/auth/login', {
-      email,
-      password,
-    });
-    
-    if (response.data.access_token) {
-      localStorage.setItem('access_token', response.data.access_token);
-      localStorage.setItem('refresh_token', response.data.refresh_token);
-      localStorage.setItem('user', JSON.stringify(response.data.user));
+  // Connexion avec email/mot de passe
+  async signIn(email, password) {
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (error) throw error;
+      return { success: true, data };
+    } catch (error) {
+      return { success: false, error: error.message };
     }
-    
-    return response.data;
   },
 
-  logout: () => {
-    localStorage.removeItem('access_token');
-    localStorage.removeItem('refresh_token');
-    localStorage.removeItem('user');
+  // Connexion avec Google
+  async signInWithGoogle() {
+    try {
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}/auth/callback`,
+        },
+      });
+
+      if (error) throw error;
+      return { success: true, data };
+    } catch (error) {
+      return { success: false, error: error.message };
+    }
   },
 
-  getCurrentUser: () => {
-    const user = localStorage.getItem('user');
-    return user ? JSON.parse(user) : null;
+  // Connexion avec Facebook
+  async signInWithFacebook() {
+    try {
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider: 'facebook',
+        options: {
+          redirectTo: `${window.location.origin}/auth/callback`,
+        },
+      });
+
+      if (error) throw error;
+      return { success: true, data };
+    } catch (error) {
+      return { success: false, error: error.message };
+    }
   },
 
-  isAuthenticated: () => {
-    return !!localStorage.getItem('access_token');
+  // Réinitialiser le mot de passe
+  async resetPassword(email) {
+    try {
+      const { data, error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/auth/reset-password`,
+      });
+
+      if (error) throw error;
+      return { success: true, data };
+    } catch (error) {
+      return { success: false, error: error.message };
+    }
   },
 
-  getToken: () => {
-    return localStorage.getItem('access_token');
+  // Déconnexion
+  async signOut() {
+    try {
+      const { error } = await supabase.auth.signOut();
+      if (error) throw error;
+      return { success: true };
+    } catch (error) {
+      return { success: false, error: error.message };
+    }
+  },
+
+  // Récupérer l'utilisateur actuel
+  async getCurrentUser() {
+    try {
+      const { data, error } = await supabase.auth.getUser();
+      if (error) throw error;
+      return { success: true, user: data.user };
+    } catch (error) {
+      return { success: false, error: error.message };
+    }
+  },
+
+  // Écouter les changements d'authentification
+  onAuthStateChange(callback) {
+    return supabase.auth.onAuthStateChange((event, session) => {
+      callback(event, session);
+    });
   },
 };
-
-export default authService;
