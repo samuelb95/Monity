@@ -28,11 +28,15 @@ api.interceptors.response.use(
     const originalRequest = error.config;
 
     // Si token expiré et on a un refresh token, essayer de le rafraîchir
-    if (error.response?.status === 401 && !originalRequest._retry) {
+    if (error.response?.status === 401 && !originalRequest._retry && originalRequest.url !== '/auth/refresh') {
       originalRequest._retry = true;
       
       try {
         const refreshToken = localStorage.getItem('refresh_token');
+        if (!refreshToken) {
+          throw new Error('No refresh token available');
+        }
+
         const response = await axios.post(`${API_URL}/auth/refresh`, {}, {
           headers: {
             Authorization: `Bearer ${refreshToken}`,
@@ -44,12 +48,16 @@ api.interceptors.response.use(
         
         // Retry la requête originale
         api.defaults.headers.common.Authorization = `Bearer ${access_token}`;
+        originalRequest.headers.Authorization = `Bearer ${access_token}`;
         return api(originalRequest);
       } catch (refreshError) {
-        // Refresh failed, logout
+        // Refresh failed, logout silently (don't redirect if already 401/422)
         localStorage.removeItem('access_token');
         localStorage.removeItem('refresh_token');
-        window.location.href = '/login';
+        // Only redirect if we're not already on login page
+        if (window.location.pathname !== '/login') {
+          window.location.href = '/login';
+        }
         return Promise.reject(refreshError);
       }
     }

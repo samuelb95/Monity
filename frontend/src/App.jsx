@@ -7,26 +7,9 @@ import { ProtectedRoute } from './components/Auth/ProtectedRoute';
 import { LandingPage } from './components/LandingPage';
 import { AuthPage } from './pages/AuthPage';
 import { AuthCallbackPage } from './pages/AuthCallbackPage';
+import { DashboardPage } from './pages/DashboardPage';
+import { AccountPage } from './pages/AccountPage';
 import { supabase } from './config/supabase';
-
-// Pages (à implémenter)
-const DashboardPage = () => (
-  <div className="max-w-7xl mx-auto px-4 py-12">
-    <h1 className="text-3xl font-bold text-gray-800 mb-4">Tableau de bord</h1>
-    <div className="bg-white rounded-lg shadow p-6">
-      <p className="text-gray-600">Dashboard en cours de développement...</p>
-    </div>
-  </div>
-);
-
-const AccountsPage = () => (
-  <div className="max-w-7xl mx-auto px-4 py-12">
-    <h1 className="text-3xl font-bold text-gray-800 mb-4">Comptes</h1>
-    <div className="bg-white rounded-lg shadow p-6">
-      <p className="text-gray-600">Gestion des comptes en cours de développement...</p>
-    </div>
-  </div>
-);
 
 // Component interne pour la navigation
 function AppContent() {
@@ -144,12 +127,12 @@ function AppContent() {
           } 
         />
         <Route 
-          path="/accounts" 
+          path="/account" 
           element={
             <ProtectedRoute>
               <Navbar />
               <main>
-                <AccountsPage />
+                <AccountPage />
               </main>
             </ProtectedRoute>
           } 

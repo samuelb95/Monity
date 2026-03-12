@@ -64,7 +64,7 @@ export function RealTimeTrackingAnimation() {
           clearInterval(interval);
           setAnimationComplete(true);
         }
-      }, 1500);
+      }, 100);
 
       return () => clearInterval(interval);
     }, 800);

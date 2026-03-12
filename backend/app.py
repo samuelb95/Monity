@@ -29,6 +29,7 @@ def create_app(config_name=None):
     from routes.transactions import transactions_bp
     from routes.budgets import budgets_bp
     from routes.categories import categories_bp
+    from routes.dashboards import dashboards_bp
     
     app.register_blueprint(auth_bp, url_prefix='/api/auth')
     app.register_blueprint(users_bp, url_prefix='/api/users')
@@ -36,6 +37,7 @@ def create_app(config_name=None):
     app.register_blueprint(transactions_bp, url_prefix='/api/transactions')
     app.register_blueprint(budgets_bp, url_prefix='/api/budgets')
     app.register_blueprint(categories_bp, url_prefix='/api/categories')
+    app.register_blueprint(dashboards_bp, url_prefix='/api/dashboards')
     
     # Create tables
     with app.app_context():

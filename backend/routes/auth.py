@@ -9,21 +9,13 @@ def register():
     """Register a new user"""
     data = request.get_json()
     
-    if not data or not data.get('email') or not data.get('password') or not data.get('username'):
-        return jsonify({'error': 'Missing required fields'}), 400
+    if not data or not data.get('email') or not data.get('password'):
+        return jsonify({'error': 'Missing email or password'}), 400
     
     if User.query.filter_by(email=data['email']).first():
         return jsonify({'error': 'Email already exists'}), 400
     
-    if User.query.filter_by(username=data['username']).first():
-        return jsonify({'error': 'Username already exists'}), 400
-    
-    user = User(
-        email=data['email'],
-        username=data['username'],
-        first_name=data.get('first_name'),
-        last_name=data.get('last_name')
-    )
+    user = User(email=data['email'])
     user.set_password(data['password'])
     
     db.session.add(user)
@@ -51,9 +43,6 @@ def login():
     
     if not user or not user.check_password(data['password']):
         return jsonify({'error': 'Invalid email or password'}), 401
-    
-    if not user.is_active:
-        return jsonify({'error': 'User account is inactive'}), 403
     
     access_token = create_access_token(identity=user.id)
     refresh_token = create_refresh_token(identity=user.id)
