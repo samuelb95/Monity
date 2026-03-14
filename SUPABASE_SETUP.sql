@@ -5,7 +5,7 @@
 
 -- 1. PROFILS (extension de auth.users)
 CREATE TABLE IF NOT EXISTS profiles (
-  id UUID REFERENCES auth.users(id) PRIMARY KEY ON DELETE CASCADE,
+  id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
   email TEXT,
   username TEXT UNIQUE,
   avatar_url TEXT,

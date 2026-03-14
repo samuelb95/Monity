@@ -14,7 +14,7 @@ import {
   EyeOff,
   Loader
 } from 'lucide-react';
-import { dashboardService } from '../services/dashboardService';
+import { getDashboardData } from '../services/supabaseService';
 import { useAuth } from '../hooks/useAuth';
 
 export const DashboardPage = () => {
@@ -28,8 +28,18 @@ export const DashboardPage = () => {
     const loadDashboardData = async () => {
       try {
         setLoading(true);
-        const data = await dashboardService.getDashboard();
-        setDashboardData(data);
+        // Récupérer le premier compte ou créer un structrue par défaut
+        const data = await getDashboardData(null);
+        setDashboardData({
+          primary_account: data.accounts[0] || { 
+            id: null, 
+            name: 'Mon compte', 
+            current_balance: 0, 
+            type: 'personal' 
+          },
+          transactions: data.transactions || [],
+          budgets: data.budgets || []
+        });
         setError(null);
       } catch (err) {
         console.error('Erreur chargement dashboard:', err);
@@ -64,9 +74,9 @@ export const DashboardPage = () => {
     );
   }
 
-  const primaryAccount = dashboardData.primary_account;
-  const transactions = dashboardData.transactions || [];
-  const budgets = dashboardData.budgets || [];
+  const primaryAccount = dashboardData?.primary_account || { id: null, name: 'Mon compte', current_balance: 0, type: 'personal' };
+  const transactions = dashboardData?.transactions || [];
+  const budgets = dashboardData?.budgets || [];
 
   const totalIncome = transactions
     .filter(t => t.type === 'income')
