@@ -13,10 +13,17 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     const initializeAuth = async () => {
       try {
+        // Attendre que Supabase traite le callback OAuth (s'il y en a un)
+        // Le fragment d'URL (#access_token=...) est traité automatiquement par Supabase
+        await new Promise(resolve => setTimeout(resolve, 500));
+        
         // Récupérer l'utilisateur actuel
         const { data: { user } } = await supabase.auth.getUser();
+        console.log('🔐 Utilisateur récupéré:', user?.email);
         if (user) {
           setUser(user);
+        } else {
+          console.log('⚠️ Pas d\'utilisateur trouvé');
         }
       } catch (err) {
         console.error('Erreur lors de la vérification de l\'utilisateur:', err);
@@ -30,7 +37,13 @@ export const AuthProvider = ({ children }) => {
     // Écouter les changements d'authentification
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       console.log('Auth state changed:', event, session?.user?.email);
-      setUser(session?.user || null);
+      if (session?.user) {
+        setUser(session.user);
+        setLoading(false);
+      } else {
+        setUser(null);
+        setLoading(false);
+      }
     });
 
     return () => {
