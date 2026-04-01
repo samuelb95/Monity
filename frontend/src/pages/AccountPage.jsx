@@ -324,6 +324,7 @@ export const AccountPage = () => {
                 <label className="flex items-center gap-3 cursor-pointer">
                   <input
                     type="checkbox"
+                    name="notifications"
                     checked={formData.notifications}
                     onChange={handleInputChange}
                     disabled={!isEditing}

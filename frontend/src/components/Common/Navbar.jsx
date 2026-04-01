@@ -1,206 +1,213 @@
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, NavLink, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Wallet, LogOut, Menu, X, Home, BarChart3, User, ChevronDown } from 'lucide-react';
+import {
+  BarChart3,
+  CalendarRange,
+  LineChart,
+  LogOut,
+  Menu,
+  User,
+  Users,
+  Wallet,
+  X,
+} from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 import { supabase } from '../../config/supabase';
-import { useState, useRef, useEffect } from 'react';
+import { useState } from 'react';
+
+const navigationItems = [
+  {
+    label: 'Vue d’ensemble',
+    to: '/dashboard',
+    icon: BarChart3,
+  },
+  {
+    label: 'Plan',
+    to: '/planner',
+    icon: CalendarRange,
+  },
+  {
+    label: 'Projection',
+    to: '/forecast',
+    icon: LineChart,
+  },
+  {
+    label: 'Groupes',
+    to: '/groups',
+    icon: Users,
+  },
+];
+
+function navLinkClass({ isActive }) {
+  return [
+    'inline-flex items-center gap-2 rounded-2xl px-4 py-1 text-sm font-semibold transition',
+    isActive
+      ? 'bg-slate-950 bg-[linear-gradient(135deg,#0f172a,#0ea5e9)] text-white shadow-sm'
+      : 'text-slate-600 hover:bg-slate-100 hover:text-slate-950 ',
+  ].join(' ');
+}
 
 export const Navbar = () => {
   const navigate = useNavigate();
   const { user, logout, isAuthenticated } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [userMenuOpen, setUserMenuOpen] = useState(false);
-  const userMenuRef = useRef(null);
 
   const handleLogout = async () => {
     try {
-      // Logout global Supabase (nettoie aussi les sessions OAuth)
       await supabase.auth.signOut({ scope: 'global' });
-    } catch (err) {
-      console.error('Erreur logout global:', err);
+    } catch (error) {
+      console.error('Erreur logout global:', error);
     }
+
     logout();
     navigate('/login');
   };
 
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (userMenuRef.current && !userMenuRef.current.contains(event.target)) {
-        setUserMenuOpen(false);
-      }
-    };
-
-    if (userMenuOpen) {
-      document.addEventListener('mousedown', handleClickOutside);
-      return () => document.removeEventListener('mousedown', handleClickOutside);
-    }
-  }, [userMenuOpen]);
-
-  const navigateToAccount = () => {
-    navigate('/account');
-    setUserMenuOpen(false);
-  };
-
   return (
-    <motion.nav 
+    <motion.nav
       initial={{ y: -100 }}
       animate={{ y: 0 }}
-      className="sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-gray-200 shadow-sm"
+      className="sticky top-0 z-50 border-b border-slate-300/80 bg-white/88 backdrop-blur-xl"
     >
-      <div className="container mx-auto px-4">
-        <div className="flex items-center justify-between h-16">
-          {/* Logo */}
-          <Link to="/" className="flex items-center gap-2">
-            <div className="w-10 h-10 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
-              <Wallet className="w-6 h-6 text-white" />
-            </div>
-            <span className="text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-              Monity
-            </span>
-          </Link>
+      <div className="mx-auto flex h-18 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
+        <Link to="/" className="flex items-center gap-3">
+          <div className="flex h-7 w-8 items-center justify-center rounded-2xl bg-[linear-gradient(135deg,#0f172a,#0ea5e9)] text-white shadow-sm">
+            <Wallet className="h-4 w-4" />
+          </div>
+          <div>
+            <p className="text-lg font-semibold tracking-tight text-slate-950">Monity</p>
+          </div>
+        </Link>
 
-          {/* Desktop Navigation */}
-          {isAuthenticated && (
-            <div className="hidden md:flex items-center gap-8">
-              <Link to="/dashboard" className="flex items-center gap-2 text-gray-600 hover:text-blue-600 transition-colors font-medium">
-                <BarChart3 className="w-4 h-4" />
-                Tableau de bord
+        {isAuthenticated && (
+          <div className="hidden items-center gap-2 lg:flex">
+            {navigationItems.map((item) => {
+              const Icon = item.icon;
+              return (
+                <NavLink key={item.to} to={item.to} className={navLinkClass}>
+                  <Icon className="h-4 w-4" />
+                  {item.label}
+                </NavLink>
+              );
+            })}
+          </div>
+        )}
+
+        <div className="hidden items-center gap-1 md:flex">
+          {isAuthenticated ? (
+            <>
+              <NavLink
+                to="/account"
+                className={({ isActive }) =>
+                  [
+                    'inline-flex items-center gap-2 rounded-2xl border border-slate-300 bg-slate-50 px-1 py-1 text-sm font-semibold transition',
+                    isActive ? 'text-slate-950' : 'text-slate-600 hover:bg-white hover:text-slate-950',
+                  ].join(' ')
+                }
+              >
+                <User className="h-4 w-4" />
+              </NavLink>
+              <button
+                onClick={handleLogout}
+                className="inline-flex items-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-rose-600 transition hover:bg-rose-50"
+              >
+                <LogOut className="h-4 w-4" />
+              </button>
+            </>
+          ) : (
+            <>
+              <Link
+                to="/login"
+                className="rounded-2xl px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-100"
+              >
+                Se connecter
               </Link>
-            </div>
+              <Link
+                to="/register"
+                className="rounded-2xl bg-slate-950 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-800"
+              >
+                S’inscrire
+              </Link>
+            </>
           )}
+        </div>
 
-          {/* Desktop Right Section */}
-          <div className="hidden md:flex items-center gap-4">
-            {isAuthenticated ? (
-              <div className="relative" ref={userMenuRef}>
-                <button
-                  onClick={() => setUserMenuOpen(!userMenuOpen)}
-                  className="flex items-center gap-3 px-4 py-2 rounded-lg bg-blue-50 hover:bg-blue-100 transition-colors"
-                >
-                  <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full flex items-center justify-center text-white text-sm font-bold">
-                    {user?.email?.[0]?.toUpperCase() || 'U'}
-                  </div>
-                  <span className="text-sm text-gray-700 font-medium hidden sm:inline">{user?.email}</span>
-                  <ChevronDown className="w-4 h-4 text-gray-600" />
-                </button>
+        <button
+          onClick={() => setMobileMenuOpen((open) => !open)}
+          className="inline-flex items-center justify-center rounded-2xl border border-slate-200 bg-white p-2 text-slate-700 md:hidden"
+        >
+          {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+        </button>
+      </div>
 
-                {userMenuOpen && (
-                  <motion.div
-                    initial={{ opacity: 0, y: -10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -10 }}
-                    className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 z-50"
+      {mobileMenuOpen && (
+        <div className="border-t border-slate-200/80 bg-white/96 px-4 py-4 md:hidden">
+          <div className="flex flex-col gap-2">
+            {isAuthenticated &&
+              navigationItems.map((item) => {
+                const Icon = item.icon;
+                return (
+                  <NavLink
+                    key={item.to}
+                    to={item.to}
+                    className={({ isActive }) =>
+                      [
+                        'inline-flex items-center gap-2 rounded-2xl px-4 py-3 text-sm font-semibold transition',
+                        isActive
+                          ? 'bg-slate-950 text-white bg-[linear-gradient(135deg,#0f172a,#0ea5e9)]'
+                          : 'bg-slate-50 text-slate-700 hover:bg-slate-100',
+                      ].join(' ')
+                    }
+                    onClick={() => setMobileMenuOpen(false)}
                   >
-                    <div className="py-2">
-                      <button
-                        onClick={navigateToAccount}
-                        className="w-full flex items-center gap-2 px-4 py-2 text-gray-700 hover:bg-blue-50 transition-colors font-medium text-left"
-                      >
-                        <User className="w-4 h-4" />
-                        Mon compte
-                      </button>
-                      <hr className="my-2" />
-                      <button
-                        onClick={handleLogout}
-                        className="w-full flex items-center gap-2 px-4 py-2 text-red-600 hover:bg-red-50 transition-colors font-medium text-left"
-                      >
-                        <LogOut className="w-4 h-4" />
-                        Déconnexion
-                      </button>
-                    </div>
-                  </motion.div>
-                )}
-              </div>
+                    <Icon className="h-4 w-4" />
+                    {item.label}
+                  </NavLink>
+                );
+              })}
+
+            {isAuthenticated ? (
+              <>
+                <NavLink
+                  to="/account"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="inline-flex items-center gap-2 rounded-2xl bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-100"
+                >
+                  <User className="h-4 w-4" />
+                  Mon compte
+                </NavLink>
+                <button
+                  onClick={() => {
+                    handleLogout();
+                    setMobileMenuOpen(false);
+                  }}
+                  className="inline-flex items-center gap-2 rounded-2xl bg-rose-50 px-4 py-3 text-sm font-semibold text-rose-600 transition hover:bg-rose-100"
+                >
+                  <LogOut className="h-4 w-4" />
+                  Déconnexion
+                </button>
+              </>
             ) : (
               <>
-                <Link 
+                <Link
                   to="/login"
-                  className="text-gray-600 hover:text-gray-900 px-4 py-2 transition-colors font-medium"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="rounded-2xl bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-100"
                 >
                   Se connecter
                 </Link>
-                <Link 
+                <Link
                   to="/register"
-                  className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-bold px-6 py-2 rounded-md transition-all shadow-md"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="rounded-2xl bg-slate-950 px-4 py-3 text-sm font-semibold text-white transition hover:bg-slate-800"
                 >
-                  S&apos;inscrire
+                  S’inscrire
                 </Link>
               </>
             )}
           </div>
-
-          {/* Mobile Menu Button */}
-          <button
-            className="md:hidden p-2"
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-          >
-            {mobileMenuOpen ? (
-              <X className="w-6 h-6" />
-            ) : (
-              <Menu className="w-6 h-6" />
-            )}
-          </button>
         </div>
-
-        {/* Mobile Menu */}
-        {mobileMenuOpen && (
-          <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: "auto" }}
-            exit={{ opacity: 0, height: 0 }}
-            className="md:hidden py-4 border-t"
-          >
-            <div className="flex flex-col gap-4">
-              {isAuthenticated && (
-                <>
-                  <div className="flex items-center gap-3 px-4 py-2 rounded-lg bg-blue-50">
-                    <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full flex items-center justify-center text-white text-sm font-bold">
-                      {user?.email?.[0]?.toUpperCase() || 'U'}
-                    </div>
-                    <span className="text-sm text-gray-700 font-medium">{user?.email}</span>
-                  </div>
-                  <Link 
-                    to="/dashboard" 
-                    className="flex items-center gap-2 text-gray-600 hover:text-blue-600 transition-colors py-2"
-                    onClick={() => setMobileMenuOpen(false)}
-                  >
-                    <BarChart3 className="w-4 h-4" />
-                    Tableau de bord
-                  </Link>
-                  <button 
-                    onClick={() => {
-                      handleLogout();
-                      setMobileMenuOpen(false);
-                    }}
-                    className="flex items-center gap-2 text-red-600 hover:text-red-700 transition-colors py-2 font-medium"
-                  >
-                    <LogOut className="w-4 h-4" />
-                    Déconnexion
-                  </button>
-                </>
-              )}
-              {!isAuthenticated && (
-                <>
-                  <Link 
-                    to="/login"
-                    className="border-2 border-gray-300 text-gray-700 hover:bg-gray-50 font-bold py-2 px-4 rounded-md w-full transition-colors"
-                    onClick={() => setMobileMenuOpen(false)}
-                  >
-                    Se connecter
-                  </Link>
-                  <Link 
-                    to="/register"
-                    className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-bold py-2 px-4 rounded-md w-full transition-all"
-                    onClick={() => setMobileMenuOpen(false)}
-                  >
-                    S&apos;inscrire
-                  </Link>
-                </>
-              )}
-            </div>
-          </motion.div>
-        )}
-      </div>
+      )}
     </motion.nav>
   );
 };

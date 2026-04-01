@@ -6,22 +6,26 @@ import { Wallet } from 'lucide-react';
 
 export const AuthCallbackPage = () => {
   const navigate = useNavigate();
-  const { isAuthenticated, user } = useAuth();
+  const { isAuthenticated, user, loading } = useAuth();
 
   useEffect(() => {
-    // Attendre que le contexte détecte l'authentification
-    const timer = setTimeout(() => {
-      if (isAuthenticated && user) {
-        console.log('✅ Utilisateur authentifié via OAuth, redirection vers dashboard');
-        navigate('/dashboard');
-      } else {
-        console.log('⚠️ Pas d\'utilisateur après callback, redirection vers login');
-        navigate('/login');
-      }
-    }, 1000);
+    console.log('🔐 AuthCallbackPage - Loading:', loading, 'isAuthenticated:', isAuthenticated, 'user:', user?.email);
 
-    return () => clearTimeout(timer);
-  }, [isAuthenticated, user, navigate]);
+    // Vérifier si l'authentification est complète
+    if (!loading) {
+      if (isAuthenticated && user) {
+        console.log('✅ Utilisateur authentifié, redirection vers dashboard');
+        navigate('/dashboard', { replace: true });
+      } else {
+        console.log('⚠️ Pas d\'utilisateur, redirection vers login');
+        // Attendre un peu avant de rediriger en cas de délai de détection
+        const timer = setTimeout(() => {
+          navigate('/login', { replace: true });
+        }, 1000);
+        return () => clearTimeout(timer);
+      }
+    }
+  }, [loading, isAuthenticated, user, navigate]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex items-center justify-center">

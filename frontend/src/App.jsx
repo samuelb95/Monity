@@ -1,4 +1,3 @@
-import { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import { useAuth } from './hooks/useAuth';
@@ -8,69 +7,26 @@ import { LandingPage } from './components/LandingPage';
 import { AuthPage } from './pages/AuthPage';
 import { AuthCallbackPage } from './pages/AuthCallbackPage';
 import { DashboardPage } from './pages/DashboardPage';
+import { PlannerPage } from './pages/PlannerPage';
+import { ForecastPage } from './pages/ForecastPage';
 import { AccountPage } from './pages/AccountPage';
-import { supabase } from './config/supabase';
+import { GroupsPage } from './pages/GroupsPage';
 
 // Component interne pour la navigation
 function AppContent() {
-  const { isAuthenticated, user } = useAuth();
+  const { isAuthenticated } = useAuth();
   const navigate = useNavigate();
 
-  // Gérer le callback OAuth et redirection après authentification
-  useEffect(() => {
-    const handleOAuthCallback = async () => {
-      const hash = window.location.hash;
-      const searchParams = new URLSearchParams(window.location.search);
-      
-      // Vérifier si c'est un callback OAuth
-      if (hash.includes('access_token') || searchParams.has('code')) {
-        console.log('🔐 OAuth callback détecté');
-        // Nettoyer l'URL
-        window.history.replaceState({}, document.title, window.location.pathname);
-        
-        // Attendre plus longtemps que Supabase traite le callback
-        let attempts = 0;
-        const maxAttempts = 10;
-        
-        while (attempts < maxAttempts) {
-          await new Promise(resolve => setTimeout(resolve, 500));
-          const { data: { user }, error } = await supabase.auth.getUser();
-          console.log(`📊 Tentative ${attempts + 1}: user=${!!user}, error=${error?.message || 'none'}`);
-          
-          if (user) {
-            console.log('✅ Utilisateur détecté, redirection vers dashboard');
-            navigate('/dashboard');
-            return;
-          }
-          attempts++;
-        }
-        
-        console.log('⚠️ Pas d\'utilisateur après ' + maxAttempts + ' tentatives');
-      }
-    };
-
-    handleOAuthCallback();
-  }, [navigate]);
-
-  // Rediriger vers dashboard si authentifié
-  useEffect(() => {
-    if (isAuthenticated && user) {
-      console.log('✅ Utilisateur authentifié detected, redirection');
-      navigate('/dashboard');
-    }
-  }, [isAuthenticated, user, navigate]);
-
   const handleGetStarted = (type = 'login') => {
-    // Rediriger selon l'état d'authentification
     if (isAuthenticated) {
-      window.location.href = '/dashboard';
+      navigate('/dashboard');
     } else {
-      window.location.href = type === 'register' ? '/register' : '/login';
+      navigate(type === 'register' ? '/register' : '/login');
     }
   };
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-[#f3f6fb] text-slate-900">
       <Routes>
         {/* Landing page pour les non-authentifiés */}
         <Route 
@@ -89,7 +45,7 @@ function AppContent() {
           path="/login" 
           element={
             !isAuthenticated ? (
-              <AuthPage onBackToHome={() => window.location.href = '/'} />
+              <AuthPage onBackToHome={() => navigate('/')} />
             ) : (
               <Navigate to="/dashboard" replace />
             )
@@ -101,7 +57,7 @@ function AppContent() {
           path="/register" 
           element={
             !isAuthenticated ? (
-              <AuthPage onBackToHome={() => window.location.href = '/'} />
+              <AuthPage onBackToHome={() => navigate('/')} />
             ) : (
               <Navigate to="/dashboard" replace />
             )
@@ -125,6 +81,39 @@ function AppContent() {
               </main>
             </ProtectedRoute>
           } 
+        />
+        <Route
+          path="/planner"
+          element={
+            <ProtectedRoute>
+              <Navbar />
+              <main>
+                <PlannerPage />
+              </main>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/forecast"
+          element={
+            <ProtectedRoute>
+              <Navbar />
+              <main>
+                <ForecastPage />
+              </main>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/groups"
+          element={
+            <ProtectedRoute>
+              <Navbar />
+              <main>
+                <GroupsPage />
+              </main>
+            </ProtectedRoute>
+          }
         />
         <Route 
           path="/account" 

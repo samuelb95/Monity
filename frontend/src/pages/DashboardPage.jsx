@@ -1,314 +1,517 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { 
-  TrendingUp, 
-  PieChart, 
-  Wallet,
-  Target,
-  Users,
-  ArrowUpRight,
+import {
   ArrowDownLeft,
+  ArrowUpRight,
+  Check,
+  Edit,
+  Loader,
   Plus,
-  MoreVertical,
-  Eye,
-  EyeOff,
-  Loader
+  Sparkles,
+  Target,
+  TrendingUp,
+  Wallet,
 } from 'lucide-react';
-import { getDashboardData } from '../services/supabaseService';
-import { useAuth } from '../hooks/useAuth';
+import { useFinancialWorkspace } from '../hooks/useFinancialWorkspace';
+import {
+  buildAllocationModel,
+  buildBudgetPressure,
+  buildGoalForecasts,
+  buildProjectionSeries,
+  formatCurrency,
+  formatMonthLabel,
+  getMonthlyAverage,
+  getStoredAllocationTargets,
+  summarizeTransactions,
+} from '../utils/financeModels';
+import { AreaTrendChart } from '../components/finance/charts/AreaTrendChart';
+import { AllocationChart } from '../components/finance/charts/AllocationChart';
+import MonthNavigator from '../components/Common/MonthNavigator';
+import AddTransactionModal from '../components/Transactions/AddTransactionModal';
+import AddSavingsGoalModal from '../components/SavingsGoals/AddSavingsGoalModal';
+import EditTransactionModal from '../components/Transactions/EditTransactionModal';
+import {
+  validateOccurrence,
+  validateTransaction,
+  unvalidateTransaction,
+} from '../services/supabaseService';
+
+function getGoalTone(status) {
+  if (status === 'on-track') return 'bg-emerald-100 text-emerald-700';
+  if (status === 'stretch') return 'bg-amber-100 text-amber-700';
+  if (status === 'momentum') return 'bg-sky-100 text-sky-700';
+  return 'bg-slate-100 text-slate-700';
+}
 
 export const DashboardPage = () => {
-  const { isAuthenticated } = useAuth();
-  const [showAmounts, setShowAmounts] = useState(true);
-  const [loading, setLoading] = useState(true);
-  const [dashboardData, setDashboardData] = useState(null);
-  const [error, setError] = useState(null);
+  const [selectedDate, setSelectedDate] = useState(new Date());
+  const [showTransactionModal, setShowTransactionModal] = useState(false);
+  const [showSavingsGoalModal, setShowSavingsGoalModal] = useState(false);
+  const [selectedTransaction, setSelectedTransaction] = useState(null);
+  const [showEditModal, setShowEditModal] = useState(false);
 
-  useEffect(() => {
-    const loadDashboardData = async () => {
-      try {
-        setLoading(true);
-        // Récupérer le premier compte ou créer un structrue par défaut
-        const data = await getDashboardData(null);
-        setDashboardData({
-          primary_account: data.accounts[0] || { 
-            id: null, 
-            name: 'Mon compte', 
-            current_balance: 0, 
-            type: 'personal' 
-          },
-          transactions: data.transactions || [],
-          budgets: data.budgets || []
-        });
-        setError(null);
-      } catch (err) {
-        console.error('Erreur chargement dashboard:', err);
-        setError('Erreur lors du chargement du tableau de bord');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    if (isAuthenticated) {
-      loadDashboardData();
-    }
-  }, [isAuthenticated]);
+  const { loading, error, workspace, refresh } = useFinancialWorkspace(selectedDate);
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex items-center justify-center">
-        <Loader className="w-8 h-8 text-blue-600 animate-spin" />
+      <div className="flex min-h-screen items-center justify-center bg-[radial-gradient(circle_at_50%_-12%,rgba(14,165,233,0.15),transparent_34%),radial-gradient(circle_at_50%_100%,rgba(16,185,129,0.08),transparent_34%),linear-gradient(180deg,#f7fafc_0%,#edf4f9_100%)]">
+        <Loader className="h-8 w-8 animate-spin text-sky-600" />
       </div>
     );
   }
 
-  if (error || !dashboardData) {
+  if (error || !workspace) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 py-8">
-        <div className="container mx-auto px-4">
-          <div className="bg-red-50 border border-red-200 rounded-2xl p-8 text-center">
-            <p className="text-red-600 font-semibold">{error || 'Erreur lors du chargement'}</p>
+      <div className="min-h-screen bg-[radial-gradient(circle_at_50%_-12%,rgba(14,165,233,0.15),transparent_34%),radial-gradient(circle_at_50%_100%,rgba(16,185,129,0.08),transparent_34%),linear-gradient(180deg,#f7fafc_0%,#edf4f9_100%)] py-10">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="rounded-[28px] border border-rose-200 bg-white p-8 text-center shadow-sm">
+            <p className="font-semibold text-rose-600">{error || 'Erreur de chargement'}</p>
           </div>
         </div>
       </div>
     );
   }
 
-  const primaryAccount = dashboardData?.primary_account || { id: null, name: 'Mon compte', current_balance: 0, type: 'personal' };
-  const transactions = dashboardData?.transactions || [];
-  const budgets = dashboardData?.budgets || [];
-
-  const totalIncome = transactions
-    .filter(t => t.type === 'income')
-    .reduce((sum, t) => sum + t.amount, 0);
-
-  const totalExpenses = transactions
-    .filter(t => t.type === 'expense')
-    .reduce((sum, t) => sum + t.amount, 0);
+  const { primaryAccount, allTransactions, monthTransactions, budgets, savingsGoals, categories, balances } = workspace;
+  const summary = summarizeTransactions(monthTransactions);
+  const allocationRows = buildAllocationModel(
+    monthTransactions,
+    balances,
+    getStoredAllocationTargets()
+  );
+  const budgetPressure = buildBudgetPressure(
+    budgets,
+    categories,
+    monthTransactions,
+    summary.income
+  ).slice(0, 4);
+  const monthlyCapacity = Math.max(
+    getMonthlyAverage(allTransactions, 'income') - getMonthlyAverage(allTransactions, 'expense'),
+    0
+  );
+  const projectionSeries = buildProjectionSeries(
+    primaryAccount,
+    allTransactions,
+    savingsGoals,
+    selectedDate,
+    6
+  );
+  const goalForecasts = buildGoalForecasts(
+    savingsGoals,
+    allTransactions,
+    monthlyCapacity,
+    selectedDate
+  ).slice(0, 3);
+  const displayedTransactions = monthTransactions.slice(0, 5);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 py-8">
-      <div className="container mx-auto px-4">
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
+    <div className="min-h-screen bg-[radial-gradient(circle_at_50%_-12%,rgba(14,165,233,0.15),transparent_34%),radial-gradient(circle_at_50%_100%,rgba(16,185,129,0.08),transparent_34%),linear-gradient(180deg,#f7fafc_0%,#edf4f9_100%)] py-5 sm:py-7">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <motion.section
+          initial={{ opacity: 0, y: -18 }}
           animate={{ opacity: 1, y: 0 }}
-          className="mb-8"
+          className="rounded-[30px] border border-slate-200/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(244,249,255,0.96))] p-4 shadow-[0_28px_80px_-50px_rgba(15,23,42,0.35)] sm:p-6 xl:p-7"
         >
-          <h1 className="text-4xl font-bold text-gray-900 mb-2">Tableau de bord</h1>
-          <p className="text-gray-600">Bienvenue! Voici votre aperçu financier.</p>
-        </motion.div>
+      <div className="flex flex-col gap-6 xl:flex-row xl:items-start xl:justify-between">
+        
+        {/* LEFT */}
+        <div className="flex-1 min-w-0">
+          <span className="inline-flex items-center rounded-full border border-sky-200 bg-white px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.22em] text-sky-700">
+            Vue d’ensemble
+          </span>
 
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
-            className="bg-white rounded-2xl shadow-lg p-6 border border-gray-100"
-          >
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-gray-600 font-medium">Revenu</h3>
-              <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
-                <ArrowDownLeft className="w-5 h-5 text-green-600" />
-              </div>
-            </div>
-            <span className="text-3xl font-bold text-gray-900">
-              {showAmounts ? `${totalIncome.toFixed(2)}€` : '****'}
-            </span>
-            <p className="text-sm text-gray-500 mt-2">Total</p>
-          </motion.div>
+          <h1 className="mt-3 text-1xl font-semibold tracking-tight text-slate-950 sm:text-xl xl:text-[2rem]">
+            Vision rapide de votre mois
+          </h1>
 
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.15 }}
-            className="bg-white rounded-2xl shadow-lg p-6 border border-gray-100"
-          >
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-gray-600 font-medium">Dépensé</h3>
-              <div className="w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center">
-                <ArrowUpRight className="w-5 h-5 text-red-600" />
-              </div>
-            </div>
-            <span className="text-3xl font-bold text-gray-900">
-              {showAmounts ? `${totalExpenses.toFixed(2)}€` : '****'}
-            </span>
-            <p className="text-sm text-gray-500 mt-2">Total</p>
-          </motion.div>
-
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-            className="bg-white rounded-2xl shadow-lg p-6 border border-gray-100"
-          >
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-gray-600 font-medium">Solde</h3>
-              <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                <Wallet className="w-5 h-5 text-blue-600" />
-              </div>
-            </div>
-            <span className={`text-3xl font-bold ${primaryAccount.current_balance >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-              {showAmounts ? `${primaryAccount.current_balance.toFixed(2)}€` : '****'}
-            </span>
-            <p className="text-sm text-gray-500 mt-2">Compte principal</p>
-          </motion.div>
-
-          <motion.button
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.25 }}
-            onClick={() => setShowAmounts(!showAmounts)}
-            className="bg-white rounded-2xl shadow-lg p-6 border border-gray-100 flex items-center justify-center hover:shadow-xl transition-all"
-          >
-            <div className="text-center">
-              <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center mx-auto mb-2">
-                {showAmounts ? (
-                  <EyeOff className="w-5 h-5 text-purple-600" />
-                ) : (
-                  <Eye className="w-5 h-5 text-purple-600" />
-                )}
-              </div>
-              <span className="font-medium text-sm text-gray-600">
-                {showAmounts ? 'Masquer' : 'Afficher'}
-              </span>
-            </div>
-          </motion.button>
+          <p className="mt-2 text-sm text-slate-600">
+            Revenus, dépenses, solde projeté et objectifs visibles dès l’ouverture pour piloter sans perdre l’écran dans le décor.
+          </p>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          <div className="lg:col-span-2 space-y-8">
-            {budgets.length > 0 && (
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.3 }}
-                className="bg-white rounded-2xl shadow-lg p-8 border border-gray-100"
-              >
-                <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-2">
-                  <PieChart className="w-6 h-6 text-blue-600" />
-                  Vos budgets
-                </h2>
+        {/* RIGHT */}
+        <div className="flex flex-col items-start gap-3 xl:items-end">
+          
+          {/* Month selector */}
+          <MonthNavigator
+            currentDate={selectedDate}
+            onDateChange={setSelectedDate}
+          />
 
-                <div className="space-y-6">
-                  {budgets.map((budget, index) => (
-                    <motion.div
-                      key={budget.id}
-                      initial={{ opacity: 0, x: -20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: 0.3 + index * 0.1 }}
-                    >
-                      <div className="flex items-center justify-between mb-2">
-                        <div>
-                          <h3 className="font-semibold text-gray-900">{budget.name}</h3>
-                          <p className="text-sm text-gray-600">
-                            {showAmounts ? `${budget.spent.toFixed(2)}€ / ${budget.limit_amount.toFixed(2)}€` : '**** / ****'}
-                          </p>
-                        </div>
-                        <span className={`text-sm font-bold ${budget.percentage > 80 ? 'text-red-600' : 'text-green-600'}`}>
-                          {budget.percentage.toFixed(0)}%
-                        </span>
-                      </div>
-                      <div className="h-3 bg-gray-100 rounded-full overflow-hidden">
-                        <motion.div
-                          initial={{ width: 0 }}
-                          animate={{ width: `${Math.min(budget.percentage, 100)}%` }}
-                          transition={{ delay: 0.5 + index * 0.1, duration: 0.8 }}
-                          className={`h-full rounded-full ${budget.percentage > 80 ? 'bg-red-500' : 'bg-green-500'}`}
-                        />
-                      </div>
-                    </motion.div>
-                  ))}
-                </div>
-              </motion.div>
-            )}
+          {/* Buttons under it */}
+          <div className="flex flex-wrap gap-2.5 xl:justify-end">
+            <button
+              onClick={() => setShowTransactionModal(true)}
+              className="inline-flex items-center gap-2 rounded-2xl bg-sky-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-sky-700"
+            >
+              <Plus className="h-4 w-4" />
+              transaction
+            </button>
 
-            {transactions.length > 0 && (
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.4 }}
-                className="bg-white rounded-2xl shadow-lg p-8 border border-gray-100"
-              >
-                <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-2">
-                  <TrendingUp className="w-6 h-6 text-blue-600" />
-                  Transactions récentes
-                </h2>
-
-                <div className="space-y-3">
-                  {transactions.slice(0, 5).map((transaction, index) => (
-                    <motion.div
-                      key={transaction.id}
-                      initial={{ opacity: 0, x: -20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: 0.4 + index * 0.05 }}
-                      className="flex items-center justify-between p-4 hover:bg-gray-50 rounded-lg transition-colors"
-                    >
-                      <div className="flex items-center gap-4">
-                        <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${
-                          transaction.type === 'income' ? 'bg-green-100' : 'bg-gray-100'
-                        }`}>
-                          {transaction.type === 'income' ? (
-                            <ArrowDownLeft className="w-5 h-5 text-green-600" />
-                          ) : (
-                            <ArrowUpRight className="w-5 h-5 text-gray-600" />
-                          )}
-                        </div>
-                        <div>
-                          <h4 className="font-semibold text-gray-900">{transaction.description}</h4>
-                          <p className="text-sm text-gray-500">{new Date(transaction.date).toLocaleDateString()}</p>
-                        </div>
-                      </div>
-                      <span className={`font-bold ${transaction.type === 'income' ? 'text-green-600' : 'text-gray-900'}`}>
-                        {transaction.type === 'income' ? '+' : '-'}{showAmounts ? transaction.amount.toFixed(2) : '****'}€
-                      </span>
-                    </motion.div>
-                  ))}
-                </div>
-              </motion.div>
-            )}
+            <button
+              onClick={() => setShowSavingsGoalModal(true)}
+              className="inline-flex items-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-800 hover:bg-slate-50"
+            >
+              <Target className="h-4 w-4" />
+              Nouvel objectif
+            </button>
           </div>
+        </div>
+      </div>
 
-          <div className="space-y-8">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.35 }}
-              className="bg-white rounded-2xl shadow-lg p-8 border border-gray-100"
-            >
-              <h3 className="text-xl font-bold text-gray-900 mb-4">Actions rapides</h3>
-              <div className="space-y-3">
-                <button className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-bold py-3 px-4 rounded-lg transition-all">
-                  <Plus className="w-5 h-5" />
-                  Ajouter une dépense
-                </button>
-                <button className="w-full flex items-center justify-center gap-2 border-2 border-gray-300 text-gray-700 hover:bg-gray-50 font-bold py-3 px-4 rounded-lg">
-                  <Target className="w-5 h-5" />
-                  Nouvel objectif
-                </button>
+          <div className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+
+
+            <div className="rounded-[26px] border border-emerald-200/80 bg-emerald-50/90 p-4 shadow-sm">
+              <div className="flex items-center justify-between">
+                <p className="text-sm font-semibold text-emerald-900/70">Revenus du mois</p>
+                <ArrowDownLeft className="h-5 w-5 text-emerald-600" />
               </div>
-            </motion.div>
+              <p className="mt-3 text-2xl font-semibold text-emerald-950">{formatCurrency(summary.income)}</p>
+            </div>
 
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.45 }}
-              className="bg-gradient-to-br from-blue-600 to-purple-600 rounded-2xl shadow-lg p-8 text-white"
-            >
-              <h3 className="text-xl font-bold mb-4">Compte principal</h3>
-              <div className="space-y-2">
-                <p className="text-sm text-blue-100">Nom: {primaryAccount.name}</p>
-                <p className="text-sm text-blue-100">Type: {primaryAccount.type === 'personal' ? 'Personnel' : 'Partagé'}</p>
-                <div className="pt-4 border-t border-blue-400">
-                  <p className="text-sm text-blue-100 mb-1">Solde actuel:</p>
-                  <p className="text-2xl font-bold">
-                    {showAmounts ? `${primaryAccount.current_balance.toFixed(2)}€` : '****'}
+            <div className="rounded-[26px] border border-rose-200/80 bg-rose-50/90 p-4 shadow-sm">
+              <div className="flex items-center justify-between">
+                <p className="text-sm font-semibold text-rose-900/70">Dépenses du mois</p>
+                <ArrowUpRight className="h-5 w-5 text-rose-600" />
+              </div>
+              <p className="mt-3 text-2xl font-semibold text-rose-950">{formatCurrency(summary.expenses)}</p>
+            </div>
+
+            <div className="rounded-[26px] border border-sky-200/80 bg-white/90 p-4 shadow-sm">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-semibold text-sky-900/70">Solde disponible projeté</p>
+                  <p className="mt-2 text-2xl font-semibold text-sky-950">{formatCurrency(balances.availableBalance)}</p>
+                </div>
+                <TrendingUp className="h-5 w-5 text-sky-600" />
+              </div>
+              <p className="mt-2 text-sm text-slate-500">
+                Capacité mensuelle estimée: <span className="font-semibold text-slate-700">{formatCurrency(monthlyCapacity)}</span>
+              </p>
+            </div>
+
+            <div className="rounded-[26px] border border-slate-200/80 bg-white/90 p-4 shadow-sm">
+              <div className="flex items-center justify-between">
+                <p className="text-sm font-semibold text-slate-600">Objectifs actifs</p>
+                <Sparkles className="h-5 w-5 text-amber-500" />
+              </div>
+              <p className="mt-3 text-2xl font-semibold text-slate-950">{savingsGoals.length}</p>
+              <p className="mt-2 text-sm text-slate-500">
+                {goalForecasts.length ? 'Avec une feuille de route calculée' : 'Prêts à être planifiés'}
+              </p>
+            </div>
+          </div>
+        </motion.section>
+
+        <div className="mt-6 grid gap-6 xl:grid-cols-[minmax(0,1.6fr)_minmax(320px,0.95fr)]">
+          <div className="space-y-6">
+            <section className="rounded-[32px] border border-slate-200/80 bg-white/90 p-5 shadow-sm sm:p-6">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">
+                    Projection
+                  </p>
+                  <h2 className="mt-2 text-2xl font-semibold text-slate-950">
+                    Trajectoire de trésorerie sur 6 mois
+                  </h2>
+                  <p className="mt-2 text-sm text-slate-600">
+                    Une lecture simple de votre solde disponible si vous gardez le rythme actuel.
+                  </p>
+                </div>
+                <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
+                  <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">
+                    Départ
+                  </p>
+                  <p className="mt-1 text-lg font-semibold text-slate-950">
+                    {formatCurrency(balances.realBalance)}
                   </p>
                 </div>
               </div>
-            </motion.div>
+
+              <div className="mt-6">
+                <AreaTrendChart series={projectionSeries} accent="#0ea5e9" />
+              </div>
+            </section>
+
+            <section className="rounded-[32px] border border-slate-200/80 bg-white/90 p-5 shadow-sm sm:p-6">
+              <div className="flex items-end justify-between gap-3">
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">
+                    Budgets
+                  </p>
+                  <h2 className="mt-2 text-2xl font-semibold text-slate-950">
+                    Zones de friction
+                  </h2>
+                </div>
+                <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">
+                  {budgetPressure.length} suivis
+                </span>
+              </div>
+
+              <div className="mt-5 space-y-4">
+                {budgetPressure.length === 0 && (
+                  <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50/80 px-4 py-6 text-sm text-slate-500">
+                    Aucun budget actif pour le moment. Vous pourrez les piloter plus finement depuis la page Plan.
+                  </div>
+                )}
+
+                {budgetPressure.map((budget) => (
+                  <div key={budget.id} className="rounded-2xl border border-slate-200/80 bg-slate-50/70 px-4 py-4">
+                    <div className="flex items-center justify-between gap-3">
+                      <div>
+                        <p className="font-semibold text-slate-900">{budget.name}</p>
+                        <p className="text-sm text-slate-500">
+                          {formatCurrency(budget.spent)} consommés sur {formatCurrency(budget.effectiveLimit)}
+                        </p>
+                      </div>
+                      <span className={`rounded-full px-3 py-1 text-xs font-semibold ${
+                        budget.ratio >= 100
+                          ? 'bg-rose-100 text-rose-700'
+                          : budget.ratio >= (budget.alert_threshold || 80)
+                            ? 'bg-amber-100 text-amber-700'
+                            : 'bg-emerald-100 text-emerald-700'
+                      }`}>
+                        {budget.ratio.toFixed(0)}%
+                      </span>
+                    </div>
+                    <div className="mt-3 h-2 overflow-hidden rounded-full bg-slate-200">
+                      <div
+                        className={`h-full rounded-full ${
+                          budget.ratio >= 100
+                            ? 'bg-rose-500'
+                            : budget.ratio >= (budget.alert_threshold || 80)
+                              ? 'bg-amber-500'
+                              : 'bg-sky-500'
+                        }`}
+                        style={{ width: `${Math.min(budget.ratio, 100)}%` }}
+                      />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </section>
+
+            <section className="rounded-[32px] border border-slate-200/80 bg-white/90 p-5 shadow-sm sm:p-6">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">
+                    Activité
+                  </p>
+                  <h2 className="mt-2 text-2xl font-semibold text-slate-950">
+                    Mouvements récents
+                  </h2>
+                </div>
+                <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">
+                  {displayedTransactions.length} affichés
+                </span>
+              </div>
+
+              <div className="mt-5 space-y-3">
+                {displayedTransactions.length === 0 && (
+                  <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50/80 px-4 py-6 text-sm text-slate-500">
+                    Aucune transaction sur cette période.
+                  </div>
+                )}
+
+                {displayedTransactions.map((transaction) => (
+                  <div
+                    key={`${transaction.id}-${transaction.date}`}
+                    className="group flex items-center justify-between rounded-2xl border border-slate-200/80 bg-slate-50/70 px-4 py-4"
+                  >
+                    <div className="flex min-w-0 flex-1 items-center gap-4">
+                      <div className={`flex h-10 w-10 items-center justify-center rounded-xl ${
+                        transaction.type === 'income' ? 'bg-emerald-100' : 'bg-slate-100'
+                      }`}>
+                        {transaction.type === 'income' ? (
+                          <ArrowDownLeft className="h-5 w-5 text-emerald-600" />
+                        ) : (
+                          <ArrowUpRight className="h-5 w-5 text-slate-600" />
+                        )}
+                      </div>
+
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate font-semibold text-slate-900">{transaction.description}</p>
+                        <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-slate-500">
+                          <span>
+                            {new Date(transaction.date).toLocaleDateString('fr-FR', {
+                              day: 'numeric',
+                              month: 'short',
+                            })}
+                          </span>
+                          {transaction.is_recurring && (
+                            <span className="rounded-full bg-sky-100 px-2 py-0.5 text-sky-700">Récurrent</span>
+                          )}
+                          {transaction.savings_goal_id && (
+                            <span className="rounded-full bg-teal-100 px-2 py-0.5 text-teal-700">Objectif</span>
+                          )}
+                          {transaction.is_validated && (
+                            <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-emerald-700">Validé</span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="ml-4 flex items-center gap-2">
+                      <span className={`text-sm font-semibold ${
+                        transaction.type === 'income' ? 'text-emerald-700' : 'text-slate-900'
+                      }`}>
+                        {transaction.type === 'income' ? '+' : '-'}
+                        {formatCurrency(transaction.amount)}
+                      </span>
+
+                      <button
+                        onClick={async () => {
+                          try {
+                            if (transaction.is_occurrence) {
+                              await validateOccurrence(transaction.id, transaction.occurrence_date);
+                            } else if (transaction.is_validated) {
+                              await unvalidateTransaction(transaction.id);
+                            } else {
+                              await validateTransaction(transaction.id);
+                            }
+                            refresh();
+                          } catch (actionError) {
+                            console.error('Erreur validation transaction:', actionError);
+                          }
+                        }}
+                        className={`rounded-lg p-2 transition-colors ${
+                          transaction.is_validated
+                            ? 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200'
+                            : 'text-slate-400 hover:bg-slate-200 hover:text-emerald-700'
+                        }`}
+                        title="Valider"
+                      >
+                        <Check className="h-4 w-4" />
+                      </button>
+
+                      <button
+                        onClick={() => {
+                          setSelectedTransaction(transaction);
+                          setShowEditModal(true);
+                        }}
+                        className="rounded-lg p-2 text-slate-400 opacity-0 transition hover:bg-sky-100 hover:text-sky-700 group-hover:opacity-100"
+                        title="Modifier"
+                      >
+                        <Edit className="h-4 w-4" />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </section>
+          </div>
+
+          <div className="space-y-6">
+            <section className="rounded-[32px] border border-slate-200/80 bg-white/90 p-5 shadow-sm sm:p-6">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">
+                  Répartition
+                </p>
+                <h2 className="mt-2 text-2xl font-semibold text-slate-950">
+                  Réel vs cible du mois
+                </h2>
+                <p className="mt-2 text-sm text-slate-600">
+                  Une lecture directe de la façon dont votre budget se distribue aujourd’hui.
+                </p>
+              </div>
+
+              <div className="mt-6">
+                <AllocationChart rows={allocationRows} />
+              </div>
+            </section>
+
+            <section className="rounded-[32px] border border-slate-200/80 bg-white/90 p-5 shadow-sm sm:p-6">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">
+                  Objectifs
+                </p>
+                <h2 className="mt-2 text-2xl font-semibold text-slate-950">
+                  Priorités de progression
+                </h2>
+              </div>
+
+              <div className="mt-5 space-y-4">
+                {goalForecasts.length === 0 && (
+                  <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50/80 px-4 py-6 text-sm text-slate-500">
+                    Créez un objectif pour commencer à projeter vos dates d’atteinte.
+                  </div>
+                )}
+
+                {goalForecasts.map((goal) => (
+                  <div key={goal.id} className="rounded-2xl border border-slate-200/80 bg-slate-50/70 p-4">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-2">
+                          <span className="text-xl">{goal.icon}</span>
+                          <p className="truncate font-semibold text-slate-900">{goal.name}</p>
+                        </div>
+                        <p className="mt-2 text-sm text-slate-600">
+                          Reste {formatCurrency(goal.remaining)} pour atteindre {formatCurrency(goal.target_amount)}.
+                        </p>
+                      </div>
+                      <span className={`rounded-full px-3 py-1 text-xs font-semibold ${getGoalTone(goal.status)}`}>
+                        {goal.status === 'on-track' && 'Sur la bonne voie'}
+                        {goal.status === 'stretch' && 'À renforcer'}
+                        {goal.status === 'momentum' && 'En mouvement'}
+                        {goal.status === 'stable' && 'À planifier'}
+                      </span>
+                    </div>
+
+                    <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                      <div className="rounded-2xl bg-white/90 px-3 py-3">
+                        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">
+                          Effort recommandé
+                        </p>
+                        <p className="mt-2 text-lg font-semibold text-slate-950">
+                          {formatCurrency(goal.suggestedMonthly || 0)} / mois
+                        </p>
+                      </div>
+                      <div className="rounded-2xl bg-white/90 px-3 py-3">
+                        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">
+                          Date estimée
+                        </p>
+                        <p className="mt-2 text-lg font-semibold text-slate-950">
+                          {goal.projectedDate
+                            ? goal.projectedDate.toLocaleDateString('fr-FR', {
+                                month: 'long',
+                                year: 'numeric',
+                              })
+                            : 'À définir'}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </section>
           </div>
         </div>
       </div>
+
+      <AddTransactionModal
+        isOpen={showTransactionModal}
+        onClose={() => setShowTransactionModal(false)}
+        accountId={primaryAccount.id}
+        onTransactionAdded={refresh}
+      />
+
+      <AddSavingsGoalModal
+        isOpen={showSavingsGoalModal}
+        onClose={() => setShowSavingsGoalModal(false)}
+        accountId={primaryAccount.id}
+        onGoalAdded={refresh}
+      />
+
+      <EditTransactionModal
+        isOpen={showEditModal}
+        onClose={() => {
+          setShowEditModal(false);
+          setSelectedTransaction(null);
+        }}
+        transaction={selectedTransaction}
+        onTransactionUpdated={refresh}
+      />
     </div>
   );
 };

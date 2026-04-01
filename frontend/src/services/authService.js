@@ -56,7 +56,7 @@ export const authService = {
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin.replace('http://', 'http://').replace('https://', 'https://')}/auth/callback`,
+          redirectTo: `${window.location.origin}/auth/callback`,
         },
       });
 
@@ -79,7 +79,7 @@ export const authService = {
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'facebook',
         options: {
-          redirectTo: `${window.location.origin.replace('http://', 'http://').replace('https://', 'https://')}/auth/callback`,
+          redirectTo: `${window.location.origin}/auth/callback`,
         },
       });
 

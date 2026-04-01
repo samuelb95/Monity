@@ -9,46 +9,23 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Vérifier si l'utilisateur est connecté au chargement et écouter les changements
   useEffect(() => {
     let isMounted = true;
 
-    // Écouter les changements d'authentification EN PREMIER
+    // Écouter les changements d'authentification Supabase
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      console.log('Auth state changed:', event, session?.user?.email);
+      console.log('🔄 Auth state changed:', event, 'user:', session?.user?.email);
       if (isMounted) {
         if (session?.user) {
-          console.log('✅ Utilisateur connecté via listener:', session.user.email);
+          console.log('✅ Session trouvée:', session.user.email);
           setUser(session.user);
-          setLoading(false);
         } else {
-          console.log('⚠️ Pas de session active');
+          console.log('⚠️ Pas de session');
           setUser(null);
         }
+        setLoading(false);
       }
     });
-
-    // Ensuite, vérifier la session actuelle (pour les refreshes de page)
-    const initializeAuth = async () => {
-      try {
-        const { data: { session } } = await supabase.auth.getSession();
-        console.log('📊 Session récupérée:', session?.user?.email);
-        
-        if (isMounted) {
-          if (session?.user) {
-            setUser(session.user);
-          }
-          setLoading(false);
-        }
-      } catch (err) {
-        console.error('Erreur lors de la vérification de la session:', err);
-        if (isMounted) {
-          setLoading(false);
-        }
-      }
-    };
-
-    initializeAuth();
 
     return () => {
       isMounted = false;
