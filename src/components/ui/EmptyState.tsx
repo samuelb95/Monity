@@ -7,8 +7,8 @@ type EmptyStateProps = {
 
 export function EmptyState({ description, title }: EmptyStateProps) {
   return (
-    <Card className="flex min-h-52 items-center justify-center overflow-hidden text-center">
-      <div className="mx-auto w-full max-w-[17rem] min-w-0">
+    <Card className="flex min-h-[22rem] items-center justify-center overflow-hidden text-center">
+      <div className="mx-auto w-full max-w-lg min-w-0">
         <div className="mx-auto mb-5 flex h-12 w-12 items-center justify-center rounded-card bg-primary/15 text-primary ring-1 ring-primary/25">
           <span className="text-lg font-semibold" aria-hidden="true">
             M
