@@ -1,0 +1,31 @@
+import type { Account, Transaction } from '../../types/finance'
+import { EmptyState } from '../ui/EmptyState'
+import { TransactionItem } from './TransactionItem'
+
+type TransactionListProps = {
+  accounts: Account[]
+  transactions: Transaction[]
+}
+
+export function TransactionList({ accounts, transactions }: TransactionListProps) {
+  if (transactions.length === 0) {
+    return (
+      <EmptyState
+        title="Aucune transaction"
+        description="Ajoutez une première dépense, un revenu ou un transfert confirmé."
+      />
+    )
+  }
+
+  return (
+    <ul className="space-y-3">
+      {transactions.map((transaction) => (
+        <TransactionItem
+          accounts={accounts}
+          key={transaction.id}
+          transaction={transaction}
+        />
+      ))}
+    </ul>
+  )
+}

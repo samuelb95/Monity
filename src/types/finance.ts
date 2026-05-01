@@ -45,6 +45,7 @@ export type Transaction = {
   date: ISODateString
   category: string
   accountId: EntityId
+  transferTargetAccountId?: EntityId
   description?: string
   groupId?: EntityId
   paidByMemberId?: EntityId

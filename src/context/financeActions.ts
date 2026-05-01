@@ -2,24 +2,52 @@ import type { Dispatch, SetStateAction } from 'react'
 import type { Account, Transaction } from '../types/finance'
 import type { FinanceDataActions, FinanceDataState } from './financeData'
 
-function transactionDelta(transaction: Transaction) {
-  if (transaction.type === 'income') {
-    return transaction.amount
-  }
-
-  if (transaction.type === 'expense') {
-    return -transaction.amount
-  }
-
-  return 0
-}
-
 function applyAccountDelta(accounts: Account[], accountId: string, delta: number) {
   return accounts.map((account) =>
     account.id === accountId
       ? { ...account, balance: account.balance + delta, updatedAt: new Date().toISOString() }
       : account,
   )
+}
+
+function applyTransactionEffect(accounts: Account[], transaction: Transaction) {
+  if (transaction.type === 'income') {
+    return applyAccountDelta(accounts, transaction.accountId, transaction.amount)
+  }
+
+  if (transaction.type === 'expense') {
+    return applyAccountDelta(accounts, transaction.accountId, -transaction.amount)
+  }
+
+  if (transaction.transferTargetAccountId) {
+    return applyAccountDelta(
+      applyAccountDelta(accounts, transaction.accountId, -transaction.amount),
+      transaction.transferTargetAccountId,
+      transaction.amount,
+    )
+  }
+
+  return accounts
+}
+
+function rollbackTransactionEffect(accounts: Account[], transaction: Transaction) {
+  if (transaction.type === 'income') {
+    return applyAccountDelta(accounts, transaction.accountId, -transaction.amount)
+  }
+
+  if (transaction.type === 'expense') {
+    return applyAccountDelta(accounts, transaction.accountId, transaction.amount)
+  }
+
+  if (transaction.transferTargetAccountId) {
+    return applyAccountDelta(
+      applyAccountDelta(accounts, transaction.accountId, transaction.amount),
+      transaction.transferTargetAccountId,
+      -transaction.amount,
+    )
+  }
+
+  return accounts
 }
 
 export function createFinanceDataActions(
@@ -40,25 +68,19 @@ export function createFinanceDataActions(
     addTransaction: (transaction) =>
       setData((current) => ({
         ...current,
-        accounts: applyAccountDelta(
-          current.accounts,
-          transaction.accountId,
-          transactionDelta(transaction),
-        ),
+        accounts: applyTransactionEffect(current.accounts, transaction),
         transactions: [...current.transactions, transaction],
       })),
     updateTransaction: (transaction) =>
       setData((current) => {
         const previous = current.transactions.find((item) => item.id === transaction.id)
-        const accounts = applyAccountDelta(
-          current.accounts,
-          previous?.accountId ?? transaction.accountId,
-          previous ? -transactionDelta(previous) : 0,
-        )
+        const accounts = previous
+          ? rollbackTransactionEffect(current.accounts, previous)
+          : current.accounts
 
         return {
           ...current,
-          accounts: applyAccountDelta(accounts, transaction.accountId, transactionDelta(transaction)),
+          accounts: applyTransactionEffect(accounts, transaction),
           transactions: current.transactions.map((item) =>
             item.id === transaction.id ? transaction : item,
           ),
@@ -71,7 +93,7 @@ export function createFinanceDataActions(
         return {
           ...current,
           accounts: transaction
-            ? applyAccountDelta(current.accounts, transaction.accountId, -transactionDelta(transaction))
+            ? rollbackTransactionEffect(current.accounts, transaction)
             : current.accounts,
           transactions: current.transactions.filter((item) => item.id !== transactionId),
         }
@@ -158,7 +180,7 @@ function confirmOccurrence(
 
   return {
     ...current,
-    accounts: applyAccountDelta(current.accounts, transaction.accountId, transactionDelta(transaction)),
+    accounts: applyTransactionEffect(current.accounts, transaction),
     recurringOccurrences: current.recurringOccurrences.map((item) =>
       item.id === occurrenceId
         ? { ...item, status: 'confirmed' as const, transactionId: transaction.id }
