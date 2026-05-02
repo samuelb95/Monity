@@ -1,13 +1,18 @@
-import type { Account, Transaction } from '../../types/finance'
+import type { Account, Group, Transaction } from '../../types/finance'
 import { EmptyState } from '../ui/EmptyState'
 import { TransactionItem } from './TransactionItem'
 
 type TransactionListProps = {
   accounts: Account[]
+  groups: Group[]
   transactions: Transaction[]
 }
 
-export function TransactionList({ accounts, transactions }: TransactionListProps) {
+export function TransactionList({
+  accounts,
+  groups,
+  transactions,
+}: TransactionListProps) {
   if (transactions.length === 0) {
     return (
       <EmptyState
@@ -22,6 +27,7 @@ export function TransactionList({ accounts, transactions }: TransactionListProps
       {transactions.map((transaction) => (
         <TransactionItem
           accounts={accounts}
+          groups={groups}
           key={transaction.id}
           transaction={transaction}
         />

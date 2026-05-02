@@ -37,7 +37,11 @@ export function TransactionsPage() {
         <Button onClick={() => setIsModalOpen(true)}>Ajouter une transaction</Button>
       </div>
 
-      <TransactionList accounts={accounts} transactions={confirmedTransactions} />
+      <TransactionList
+        accounts={accounts}
+        groups={groups}
+        transactions={confirmedTransactions}
+      />
 
       <Modal
         isOpen={isModalOpen}
