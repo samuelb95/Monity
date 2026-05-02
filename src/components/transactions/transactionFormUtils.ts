@@ -11,7 +11,6 @@ export type TransactionFormValues = {
   date: string
   description: string
   groupId: string
-  paidByMemberId: string
   targetAccountId: string
   type: TransactionType
 }
@@ -36,7 +35,6 @@ export function createConfirmedTransaction(
       values.type === 'transfer' ? values.targetAccountId : undefined,
     description: values.description.trim() || undefined,
     groupId: values.groupId || undefined,
-    paidByMemberId: values.groupId ? values.paidByMemberId || undefined : undefined,
     status: 'confirmed',
     createdAt: timestamp,
     updatedAt: timestamp,

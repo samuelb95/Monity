@@ -10,7 +10,6 @@ export function TransactionsPage() {
   const {
     accounts,
     addTransaction,
-    groupMembers,
     groups,
     transactions,
     user,
@@ -48,7 +47,6 @@ export function TransactionsPage() {
         <TransactionForm
           accounts={accounts}
           groups={groups}
-          groupMembers={groupMembers}
           onCancel={() => setIsModalOpen(false)}
           onSubmit={(transaction) => {
             addTransaction(transaction)

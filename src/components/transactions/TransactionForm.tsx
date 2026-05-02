@@ -1,5 +1,5 @@
 import { useMemo, useState, type FormEvent } from 'react'
-import type { Account, Group, GroupMember, Transaction, TransactionType, User } from '../../types/finance'
+import type { Account, Group, Transaction, TransactionType, User } from '../../types/finance'
 import { Button } from '../ui/Button'
 import { Input } from '../ui/Input'
 import { Select } from '../ui/Select'
@@ -16,7 +16,6 @@ import { TransactionTypeSelector } from './TransactionTypeSelector'
 type TransactionFormProps = {
   accounts: Account[]
   groups: Group[]
-  groupMembers: GroupMember[]
   user: User
   onCancel: () => void
   onSubmit: (transaction: Transaction) => void
@@ -25,7 +24,6 @@ type TransactionFormProps = {
 export function TransactionForm({
   accounts,
   groups,
-  groupMembers,
   onCancel,
   onSubmit,
   user,
@@ -36,7 +34,6 @@ export function TransactionForm({
   const [category, setCategory] = useState('')
   const [description, setDescription] = useState('')
   const [groupId, setGroupId] = useState('')
-  const [paidByMemberId, setPaidByMemberId] = useState('')
   const [accountId, setAccountId] = useState('')
   const [targetAccountId, setTargetAccountId] = useState('')
   const [errors, setErrors] = useState<FormErrors>({})
@@ -52,7 +49,6 @@ export function TransactionForm({
     [accounts, groupId],
   )
 
-  const availableMembers = groupMembers.filter((member) => member.groupId === groupId)
   const accountOptions = toOptions(availableAccounts)
 
   function resetForm() {
@@ -62,7 +58,6 @@ export function TransactionForm({
     setCategory('')
     setDescription('')
     setGroupId('')
-    setPaidByMemberId('')
     setAccountId('')
     setTargetAccountId('')
     setErrors({})
@@ -86,7 +81,6 @@ export function TransactionForm({
       date,
       description,
       groupId,
-      paidByMemberId,
       targetAccountId,
       type,
     }
@@ -143,13 +137,12 @@ export function TransactionForm({
           setGroupId(event.target.value)
           setAccountId('')
           setTargetAccountId('')
-          setPaidByMemberId('')
         }}
         options={[{ label: 'Transaction personnelle', value: '' }, ...toOptions(groups)]}
         value={groupId}
       />
       <Select
-        label={type === 'transfer' ? 'Compte source' : 'Compte payé avec'}
+        label={type === 'transfer' ? 'Compte source' : 'Payé avec'}
         name="accountId"
         onChange={(event) => setAccountId(event.target.value)}
         options={[{ label: 'Sélectionner un compte', value: '' }, ...accountOptions]}
@@ -167,15 +160,6 @@ export function TransactionForm({
           />
           <FieldError message={errors.target} />
         </>
-      ) : null}
-      {groupId && type === 'expense' ? (
-        <Select
-          label="Payé par"
-          name="paidByMemberId"
-          onChange={(event) => setPaidByMemberId(event.target.value)}
-          options={[{ label: 'Non précisé', value: '' }, ...toOptions(availableMembers)]}
-          value={paidByMemberId}
-        />
       ) : null}
       <Input
         label="Description"
