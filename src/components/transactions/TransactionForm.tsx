@@ -42,12 +42,13 @@ export function TransactionForm({
   const [errors, setErrors] = useState<FormErrors>({})
 
   const availableAccounts = useMemo(
-    () =>
-      accounts.filter((account) =>
-        groupId
-          ? account.ownerType === 'group' && account.groupId === groupId
-          : account.ownerType === 'user',
-      ),
+    () => accounts.filter((account) => {
+      if (account.ownerType === 'user') {
+        return true
+      }
+
+      return Boolean(groupId && account.groupId === groupId)
+    }),
     [accounts, groupId],
   )
 
@@ -148,7 +149,7 @@ export function TransactionForm({
         value={groupId}
       />
       <Select
-        label={type === 'transfer' ? 'Compte source' : 'Compte'}
+        label={type === 'transfer' ? 'Compte source' : 'Compte payé avec'}
         name="accountId"
         onChange={(event) => setAccountId(event.target.value)}
         options={[{ label: 'Sélectionner un compte', value: '' }, ...accountOptions]}
