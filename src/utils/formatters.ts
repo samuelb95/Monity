@@ -14,3 +14,10 @@ export function formatDate(value: string) {
     year: 'numeric',
   }).format(new Date(value))
 }
+
+export function formatPercent(value: number) {
+  return new Intl.NumberFormat('fr-FR', {
+    maximumFractionDigits: 1,
+    style: 'percent',
+  }).format(value / 100)
+}

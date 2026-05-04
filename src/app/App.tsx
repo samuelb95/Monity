@@ -19,6 +19,10 @@ function App() {
     return () => window.removeEventListener('hashchange', handleHashChange)
   }, [])
 
+  useEffect(() => {
+    window.scrollTo({ left: 0, top: 0 })
+  }, [currentPath])
+
   const activeRoute = useMemo(
     () => routes.find((route) => route.path === currentPath) ?? routes[0],
     [currentPath],
