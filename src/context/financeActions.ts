@@ -168,6 +168,7 @@ function confirmOccurrence(
     type: recurring.type,
     amount: occurrence.amount,
     date: occurrence.dueDate,
+    categoryId: 'category-housing',
     category: occurrence.category,
     accountId: occurrence.accountId,
     groupId: recurring.groupId,

@@ -1,10 +1,18 @@
 import { useMemo, useState, type FormEvent } from 'react'
-import type { Account, Group, Transaction, TransactionType, User } from '../../types/finance'
+import type {
+  Account,
+  Category,
+  Group,
+  Transaction,
+  TransactionType,
+  User,
+} from '../../types/finance'
 import { Button } from '../ui/Button'
 import { Input } from '../ui/Input'
 import { Select } from '../ui/Select'
 import {
   createConfirmedTransaction,
+  getDefaultCategoryId,
   today,
   toOptions,
   validateTransactionForm,
@@ -15,7 +23,10 @@ import { TransactionTypeSelector } from './TransactionTypeSelector'
 
 type TransactionFormProps = {
   accounts: Account[]
+  categories: Category[]
   groups: Group[]
+  initialTransaction?: Transaction
+  submitLabel?: string
   user: User
   onCancel: () => void
   onSubmit: (transaction: Transaction) => void
@@ -23,19 +34,28 @@ type TransactionFormProps = {
 
 export function TransactionForm({
   accounts,
+  categories,
   groups,
+  initialTransaction,
   onCancel,
   onSubmit,
+  submitLabel = 'Ajouter',
   user,
 }: TransactionFormProps) {
-  const [type, setType] = useState<TransactionType>('expense')
-  const [amount, setAmount] = useState('')
-  const [date, setDate] = useState(today)
-  const [category, setCategory] = useState('')
-  const [description, setDescription] = useState('')
-  const [groupId, setGroupId] = useState('')
-  const [accountId, setAccountId] = useState('')
-  const [targetAccountId, setTargetAccountId] = useState('')
+  const [type, setType] = useState<TransactionType>(
+    initialTransaction?.type ?? 'expense',
+  )
+  const [amount, setAmount] = useState(
+    initialTransaction ? String(initialTransaction.amount) : '',
+  )
+  const [date, setDate] = useState(initialTransaction?.date ?? today)
+  const [categoryId, setCategoryId] = useState(initialTransaction?.categoryId ?? '')
+  const [description, setDescription] = useState(initialTransaction?.description ?? '')
+  const [groupId, setGroupId] = useState(initialTransaction?.groupId ?? '')
+  const [accountId, setAccountId] = useState(initialTransaction?.accountId ?? '')
+  const [targetAccountId, setTargetAccountId] = useState(
+    initialTransaction?.transferTargetAccountId ?? '',
+  )
   const [errors, setErrors] = useState<FormErrors>({})
 
   const availableAccounts = useMemo(
@@ -50,12 +70,18 @@ export function TransactionForm({
   )
 
   const accountOptions = toOptions(availableAccounts)
+  const categoryOptions = categories
+    .filter((category) => category.type === type)
+    .map((category) => ({
+      label: category.name,
+      value: category.id,
+    }))
 
   function resetForm() {
     setType('expense')
     setAmount('')
     setDate(today)
-    setCategory('')
+    setCategoryId('')
     setDescription('')
     setGroupId('')
     setAccountId('')
@@ -65,7 +91,7 @@ export function TransactionForm({
 
   function handleTypeChange(nextType: TransactionType) {
     setType(nextType)
-    setCategory('')
+    setCategoryId(getDefaultCategoryId(categories, nextType))
     setTargetAccountId('')
     setErrors({})
   }
@@ -77,7 +103,7 @@ export function TransactionForm({
     const values = {
       accountId,
       amount: parsedAmount,
-      category,
+      categoryId,
       date,
       description,
       groupId,
@@ -91,7 +117,7 @@ export function TransactionForm({
       return
     }
 
-    onSubmit(createConfirmedTransaction(values, user))
+    onSubmit(createConfirmedTransaction(values, user, initialTransaction))
     resetForm()
   }
 
@@ -120,16 +146,27 @@ export function TransactionForm({
       <FieldError message={errors.date} />
       {type !== 'transfer' ? (
         <>
-          <Input
+          <Select
             label={type === 'income' ? 'Catégorie ou source' : 'Catégorie'}
-            name="category"
-            onChange={(event) => setCategory(event.target.value)}
-            placeholder={type === 'income' ? 'Salaire, remboursement...' : 'Courses, loyer...'}
-            value={category}
+            name="categoryId"
+            onChange={(event) => setCategoryId(event.target.value)}
+            options={[{ label: 'Sélectionner une catégorie', value: '' }, ...categoryOptions]}
+            value={categoryId}
           />
-          <FieldError message={errors.category} />
+          <FieldError message={errors.categoryId} />
         </>
-      ) : null}
+      ) : (
+        <>
+          <Select
+            label="Catégorie"
+            name="categoryId"
+            onChange={(event) => setCategoryId(event.target.value)}
+            options={[{ label: 'Sélectionner une catégorie', value: '' }, ...categoryOptions]}
+            value={categoryId}
+          />
+          <FieldError message={errors.categoryId} />
+        </>
+      )}
       <Select
         label="Lier à un groupe"
         name="groupId"
@@ -172,7 +209,7 @@ export function TransactionForm({
         <Button onClick={onCancel} variant="secondary">
           Annuler
         </Button>
-        <Button type="submit">Ajouter</Button>
+        <Button type="submit">{submitLabel}</Button>
       </div>
     </form>
   )

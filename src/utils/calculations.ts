@@ -1,5 +1,6 @@
 import type {
   Budget,
+  Category,
   ForecastItem,
   ForecastSummary,
   GroupMember,
@@ -44,8 +45,30 @@ export function expensesByCategory(transactions: Transaction[]) {
 
       return {
         ...categories,
-        [transaction.category]:
-          (categories[transaction.category] ?? 0) + transaction.amount,
+        [transaction.categoryId]:
+          (categories[transaction.categoryId] ?? 0) + transaction.amount,
+      }
+    },
+    {},
+  )
+}
+
+export function expensesByFamily(
+  transactions: Transaction[],
+  categories: Category[],
+) {
+  return getConfirmedTransactionsOnly(transactions).reduce<Record<string, number>>(
+    (families, transaction) => {
+      if (transaction.type !== 'expense') {
+        return families
+      }
+
+      const category = categories.find((item) => item.id === transaction.categoryId)
+      const family = category?.family ?? 'essential'
+
+      return {
+        ...families,
+        [family]: (families[family] ?? 0) + transaction.amount,
       }
     },
     {},
@@ -58,7 +81,11 @@ export function budgetUsage(budget: Budget, transactions: Transaction[]) {
   }
 
   const spent = getConfirmedTransactionsOnly(transactions)
-    .filter((transaction) => transaction.category === budget.category)
+    .filter(
+      (transaction) =>
+        transaction.categoryId === budget.category ||
+        transaction.category === budget.category,
+    )
     .reduce((total, transaction) => {
       if (transaction.type !== 'expense') {
         return total

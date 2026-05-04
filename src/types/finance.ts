@@ -36,6 +36,24 @@ export type Account = {
 
 export type TransactionType = 'expense' | 'income' | 'transfer'
 export type TransactionStatus = 'confirmed'
+export type CategoryFamily =
+  | 'essential'
+  | 'lifestyle'
+  | 'savings'
+  | 'investment'
+  | 'income'
+
+export type Category = {
+  id: EntityId
+  userId?: EntityId
+  name: string
+  type: TransactionType
+  family: CategoryFamily
+  keywords?: string[]
+  color?: string
+  icon?: string
+  isDefault: boolean
+}
 
 export type Transaction = {
   id: EntityId
@@ -43,7 +61,8 @@ export type Transaction = {
   type: TransactionType
   amount: number
   date: ISODateString
-  category: string
+  categoryId: EntityId
+  category?: string
   accountId: EntityId
   transferTargetAccountId?: EntityId
   description?: string

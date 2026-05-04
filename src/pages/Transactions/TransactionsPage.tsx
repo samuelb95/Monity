@@ -1,29 +1,63 @@
 import { useMemo, useState } from 'react'
+import { TransactionFilters } from '../../components/transactions/TransactionFilters'
+import {
+  defaultTransactionFilters,
+  filterTransactions,
+  type TransactionFiltersValue,
+} from '../../components/transactions/transactionFilterUtils'
 import { TransactionForm } from '../../components/transactions/TransactionForm'
 import { TransactionList } from '../../components/transactions/TransactionList'
 import { Button } from '../../components/ui/Button'
 import { Modal } from '../../components/ui/Modal'
 import { useFinanceData } from '../../context/useFinanceData'
+import type { Transaction } from '../../types/finance'
 import { getConfirmedTransactionsOnly } from '../../utils/calculations'
 
 export function TransactionsPage() {
   const {
     accounts,
     addTransaction,
+    categories,
+    deleteTransaction,
     groups,
     transactions,
+    updateTransaction,
     user,
   } = useFinanceData()
+  const [filters, setFilters] = useState<TransactionFiltersValue>(
+    defaultTransactionFilters,
+  )
+  const [editingTransaction, setEditingTransaction] = useState<Transaction>()
   const [isModalOpen, setIsModalOpen] = useState(false)
 
-  const confirmedTransactions = useMemo(
+  const visibleTransactions = useMemo(
     () =>
-      getConfirmedTransactionsOnly(transactions).toSorted(
+      filterTransactions({
+        categories,
+        filters,
+        transactions: getConfirmedTransactionsOnly(transactions),
+      }).toSorted(
         (first, second) =>
           new Date(second.date).getTime() - new Date(first.date).getTime(),
       ),
-    [transactions],
+    [categories, filters, transactions],
   )
+
+  function openCreateModal() {
+    setEditingTransaction(undefined)
+    setIsModalOpen(true)
+  }
+
+  function closeModal() {
+    setIsModalOpen(false)
+    setEditingTransaction(undefined)
+  }
+
+  function handleDelete(transactionId: string) {
+    if (window.confirm('Supprimer cette transaction ?')) {
+      deleteTransaction(transactionId)
+    }
+  }
 
   return (
     <section className="space-y-6">
@@ -34,28 +68,50 @@ export function TransactionsPage() {
             Suivez les entrées, sorties et transferts confirmés de vos comptes.
           </p>
         </div>
-        <Button onClick={() => setIsModalOpen(true)}>Ajouter une transaction</Button>
+        <Button onClick={openCreateModal}>Ajouter une transaction</Button>
       </div>
+
+      <TransactionFilters
+        accounts={accounts}
+        categories={categories}
+        groups={groups}
+        onChange={setFilters}
+        onReset={() => setFilters(defaultTransactionFilters)}
+        value={filters}
+      />
 
       <TransactionList
         accounts={accounts}
+        categories={categories}
         groups={groups}
-        transactions={confirmedTransactions}
+        onDeleteTransaction={handleDelete}
+        onEditTransaction={(transaction) => {
+          setEditingTransaction(transaction)
+          setIsModalOpen(true)
+        }}
+        transactions={visibleTransactions}
       />
 
       <Modal
         isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        title="Ajouter une transaction"
+        onClose={closeModal}
+        title={editingTransaction ? 'Modifier la transaction' : 'Ajouter une transaction'}
       >
         <TransactionForm
           accounts={accounts}
+          categories={categories}
           groups={groups}
-          onCancel={() => setIsModalOpen(false)}
+          initialTransaction={editingTransaction}
+          onCancel={closeModal}
           onSubmit={(transaction) => {
-            addTransaction(transaction)
-            setIsModalOpen(false)
+            if (editingTransaction) {
+              updateTransaction(transaction)
+            } else {
+              addTransaction(transaction)
+            }
+            closeModal()
           }}
+          submitLabel={editingTransaction ? 'Enregistrer' : 'Ajouter'}
           user={user}
         />
       </Modal>

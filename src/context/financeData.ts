@@ -2,6 +2,7 @@ import { createContext } from 'react'
 import type {
   Account,
   Budget,
+  Category,
   ForecastItem,
   Group,
   GroupAccount,
@@ -18,6 +19,7 @@ import { mockFinanceData } from './mockFinanceData'
 export type FinanceDataState = {
   accounts: Account[]
   budgets: Budget[]
+  categories: Category[]
   forecastItems: ForecastItem[]
   groupAccounts: GroupAccount[]
   groupMembers: GroupMember[]

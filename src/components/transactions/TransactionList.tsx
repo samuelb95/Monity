@@ -1,16 +1,22 @@
-import type { Account, Group, Transaction } from '../../types/finance'
+import type { Account, Category, Group, Transaction } from '../../types/finance'
 import { EmptyState } from '../ui/EmptyState'
 import { TransactionItem } from './TransactionItem'
 
 type TransactionListProps = {
   accounts: Account[]
+  categories: Category[]
   groups: Group[]
+  onDeleteTransaction: (transactionId: string) => void
+  onEditTransaction: (transaction: Transaction) => void
   transactions: Transaction[]
 }
 
 export function TransactionList({
   accounts,
+  categories,
   groups,
+  onDeleteTransaction,
+  onEditTransaction,
   transactions,
 }: TransactionListProps) {
   if (transactions.length === 0) {
@@ -27,8 +33,11 @@ export function TransactionList({
       {transactions.map((transaction) => (
         <TransactionItem
           accounts={accounts}
+          categories={categories}
           groups={groups}
           key={transaction.id}
+          onDelete={onDeleteTransaction}
+          onEdit={onEditTransaction}
           transaction={transaction}
         />
       ))}

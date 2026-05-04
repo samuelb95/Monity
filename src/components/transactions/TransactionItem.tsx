@@ -1,9 +1,13 @@
-import type { Account, Group, Transaction } from '../../types/finance'
+import type { Account, Category, Group, Transaction } from '../../types/finance'
 import { formatCurrency, formatDate } from '../../utils/formatters'
+import { TransactionActionMenu } from './TransactionActionMenu'
 
 type TransactionItemProps = {
   accounts: Account[]
+  categories: Category[]
   groups: Group[]
+  onDelete: (transactionId: string) => void
+  onEdit: (transaction: Transaction) => void
   transaction: Transaction
 }
 
@@ -13,12 +17,24 @@ const typeLabels: Record<Transaction['type'], string> = {
   transfer: 'Transfert',
 }
 
+const familyLabels: Record<Category['family'], string> = {
+  essential: 'Essentiel',
+  lifestyle: 'Loisir',
+  savings: 'Épargne',
+  investment: 'Investissement',
+  income: 'Revenus',
+}
+
 export function TransactionItem({
   accounts,
+  categories,
   groups,
+  onDelete,
+  onEdit,
   transaction,
 }: TransactionItemProps) {
   const account = accounts.find((item) => item.id === transaction.accountId)
+  const category = categories.find((item) => item.id === transaction.categoryId)
   const group = groups.find((item) => item.id === transaction.groupId)
   const targetAccount = accounts.find(
     (item) => item.id === transaction.transferTargetAccountId,
@@ -32,36 +48,48 @@ export function TransactionItem({
         : 'text-primary'
 
   return (
-    <li className="flex items-start justify-between gap-4 rounded-card border border-border bg-surface p-4">
+    <li className="flex items-start justify-between gap-3 rounded-card border border-border bg-surface p-3.5 sm:p-4">
       <div className="min-w-0">
-        <div className="flex flex-wrap items-center gap-2">
-          <p className="font-semibold text-text-primary">
-            {transaction.description || transaction.category}
+        <div className="flex flex-wrap items-center gap-1.5">
+          <p className="mr-1 font-semibold leading-5 text-text-primary">
+            {transaction.description || category?.name || transaction.category}
           </p>
           <span className="rounded-full bg-surface-elevated px-2 py-0.5 text-xs text-text-secondary">
-            {typeLabels[transaction.type]}
+            {category?.name ?? typeLabels[transaction.type]}
           </span>
+          {category ? (
+            <span className="rounded-full bg-surface-elevated px-2 py-0.5 text-xs text-text-secondary">
+              {familyLabels[category.family]}
+            </span>
+          ) : null}
           {group ? (
             <span className="rounded-full border border-primary/30 bg-primary/10 px-2 py-0.5 text-xs font-semibold text-primary">
               {group.name}
             </span>
           ) : null}
         </div>
-        <p className="mt-1 text-sm text-text-secondary">
+        <p className="mt-1.5 text-sm leading-5 text-text-secondary">
           {formatDate(transaction.date)} · Payé avec {account?.name ?? 'Compte inconnu'}
           {targetAccount ? ` vers ${targetAccount.name}` : ''}
+          {group ? ` · Groupe : ${group.name}` : ''}
         </p>
-        {group ? (
-          <p className="mt-1 text-sm text-text-secondary">Groupe : {group.name}</p>
-        ) : null}
         {transaction.description ? (
-          <p className="mt-1 text-sm text-text-secondary">{transaction.category}</p>
+          <p className="mt-1 text-xs text-text-secondary">
+            Catégorie : {category?.name ?? transaction.category ?? 'Non classée'}
+          </p>
         ) : null}
       </div>
-      <p className={`shrink-0 text-sm font-semibold ${amountTone}`}>
-        {amountPrefix}
-        {formatCurrency(transaction.amount, account?.currency ?? 'EUR')}
-      </p>
+      <div className="flex shrink-0 items-start gap-2">
+        <p className={`pt-2 text-sm font-semibold ${amountTone}`}>
+          {amountPrefix}
+          {formatCurrency(transaction.amount, account?.currency ?? 'EUR')}
+        </p>
+        <TransactionActionMenu
+          onDelete={onDelete}
+          onEdit={onEdit}
+          transaction={transaction}
+        />
+      </div>
     </li>
   )
 }
