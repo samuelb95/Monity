@@ -9,6 +9,7 @@ import type {
   TransactionFiltersValue,
   TransactionPeriodFilter,
 } from './transactionFilterUtils'
+import { TransactionMultiSelectField } from './TransactionMultiSelectField'
 
 type TransactionFilterControlsProps = {
   accounts: Account[]
@@ -28,7 +29,7 @@ export function TransactionFilterControls({
   const filteredCategories = categories.filter(
     (category) =>
       (value.type === 'all' || category.type === value.type) &&
-      (!value.family || category.family === value.family),
+      (value.families.length === 0 || value.families.includes(category.family)),
   )
 
   return (
@@ -38,54 +39,51 @@ export function TransactionFilterControls({
         onChange={(event) =>
           onChange({
             ...value,
-            categoryId: '',
+            categoryIds: [],
             type: event.target.value as TransactionFiltersValue['type'],
           })
         }
         options={typeOptions}
         value={value.type}
       />
-      <Select
+      <TransactionMultiSelectField
         label="Famille"
-        onChange={(event) =>
+        onChange={(families) =>
           onChange({
             ...value,
-            categoryId: '',
-            family: event.target.value as TransactionFiltersValue['family'],
+            categoryIds: [],
+            families: families as TransactionFiltersValue['families'],
           })
         }
-        options={familyOptions}
-        value={value.family}
+        options={familyOptions.filter((option) => option.value !== '')}
+        values={value.families}
       />
-      <Select
+      <TransactionMultiSelectField
         label="Catégorie"
-        onChange={(event) => onChange({ ...value, categoryId: event.target.value })}
-        options={[
-          { label: 'Toutes', value: '' },
-          ...filteredCategories.map((category) => ({
-            label: category.name,
-            value: category.id,
-          })),
-        ]}
-        value={value.categoryId}
+        onChange={(categoryIds) => onChange({ ...value, categoryIds })}
+        options={filteredCategories.map((category) => ({
+          label: category.name,
+          value: category.id,
+        }))}
+        values={value.categoryIds}
       />
-      <Select
+      <TransactionMultiSelectField
         label="Compte"
-        onChange={(event) => onChange({ ...value, accountId: event.target.value })}
-        options={[
-          { label: 'Tous', value: '' },
-          ...accounts.map((account) => ({ label: account.name, value: account.id })),
-        ]}
-        value={value.accountId}
+        onChange={(accountIds) => onChange({ ...value, accountIds })}
+        options={accounts.map((account) => ({
+          label: account.name,
+          value: account.id,
+        }))}
+        values={value.accountIds}
       />
-      <Select
+      <TransactionMultiSelectField
         label="Groupe"
-        onChange={(event) => onChange({ ...value, groupId: event.target.value })}
-        options={[
-          { label: 'Tous', value: '' },
-          ...groups.map((group) => ({ label: group.name, value: group.id })),
-        ]}
-        value={value.groupId}
+        onChange={(groupIds) => onChange({ ...value, groupIds })}
+        options={groups.map((group) => ({
+          label: group.name,
+          value: group.id,
+        }))}
+        values={value.groupIds}
       />
       <Select
         label="Période"

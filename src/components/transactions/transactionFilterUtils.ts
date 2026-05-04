@@ -8,19 +8,19 @@ import type {
 export type TransactionPeriodFilter = 'all' | 'current_month' | 'last_month'
 
 export type TransactionFiltersValue = {
-  accountId: string
-  categoryId: string
-  family: '' | CategoryFamily
-  groupId: string
+  accountIds: string[]
+  categoryIds: string[]
+  families: CategoryFamily[]
+  groupIds: string[]
   period: TransactionPeriodFilter
   type: 'all' | TransactionType
 }
 
 export const defaultTransactionFilters: TransactionFiltersValue = {
-  accountId: '',
-  categoryId: '',
-  family: '',
-  groupId: '',
+  accountIds: [],
+  categoryIds: [],
+  families: [],
+  groupIds: [],
   period: 'all',
   type: 'all',
 }
@@ -41,19 +41,31 @@ export function filterTransactions({
       return false
     }
 
-    if (filters.family && category?.family !== filters.family) {
+    if (
+      filters.families.length > 0 &&
+      (!category || !filters.families.includes(category.family))
+    ) {
       return false
     }
 
-    if (filters.categoryId && transaction.categoryId !== filters.categoryId) {
+    if (
+      filters.categoryIds.length > 0 &&
+      !filters.categoryIds.includes(transaction.categoryId)
+    ) {
       return false
     }
 
-    if (filters.accountId && transaction.accountId !== filters.accountId) {
+    if (
+      filters.accountIds.length > 0 &&
+      !filters.accountIds.includes(transaction.accountId)
+    ) {
       return false
     }
 
-    if (filters.groupId && transaction.groupId !== filters.groupId) {
+    if (
+      filters.groupIds.length > 0 &&
+      (!transaction.groupId || !filters.groupIds.includes(transaction.groupId))
+    ) {
       return false
     }
 

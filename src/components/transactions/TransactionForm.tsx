@@ -8,8 +8,11 @@ import type {
   User,
 } from '../../types/finance'
 import { Button } from '../ui/Button'
-import { Input } from '../ui/Input'
-import { Select } from '../ui/Select'
+import { TransactionAccountField } from './TransactionAccountField'
+import { TransactionAmountField } from './TransactionAmountField'
+import { TransactionCategoryField } from './TransactionCategoryField'
+import { TransactionDateField } from './TransactionDateField'
+import { TransactionDescriptionField } from './TransactionDescriptionField'
 import {
   createConfirmedTransaction,
   getDefaultCategoryId,
@@ -18,8 +21,9 @@ import {
   validateTransactionForm,
   type FormErrors,
 } from './transactionFormUtils'
-import { FieldError } from './FieldError'
+import { TransactionGroupField } from './TransactionGroupField'
 import { TransactionTypeSelector } from './TransactionTypeSelector'
+import { TransferAccountsFields } from './TransferAccountsFields'
 
 type TransactionFormProps = {
   accounts: Account[]
@@ -124,85 +128,45 @@ export function TransactionForm({
   return (
     <form className="space-y-4" onSubmit={handleSubmit}>
       <TransactionTypeSelector onChange={handleTypeChange} value={type} />
-      <Input
-        inputMode="decimal"
-        label="Montant"
-        min="0"
-        name="amount"
-        onChange={(event) => setAmount(event.target.value)}
-        placeholder="0,00"
-        step="0.01"
-        type="number"
+      <TransactionAmountField
+        error={errors.amount}
+        onChange={setAmount}
         value={amount}
       />
-      <FieldError message={errors.amount} />
-      <Input
-        label="Date"
-        name="date"
-        onChange={(event) => setDate(event.target.value)}
-        type="date"
-        value={date}
+      <TransactionDateField error={errors.date} onChange={setDate} value={date} />
+      <TransactionCategoryField
+        error={errors.categoryId}
+        onChange={setCategoryId}
+        options={categoryOptions}
+        type={type}
+        value={categoryId}
       />
-      <FieldError message={errors.date} />
-      {type !== 'transfer' ? (
-        <>
-          <Select
-            label={type === 'income' ? 'Catégorie ou source' : 'Catégorie'}
-            name="categoryId"
-            onChange={(event) => setCategoryId(event.target.value)}
-            options={[{ label: 'Sélectionner une catégorie', value: '' }, ...categoryOptions]}
-            value={categoryId}
-          />
-          <FieldError message={errors.categoryId} />
-        </>
-      ) : (
-        <>
-          <Select
-            label="Catégorie"
-            name="categoryId"
-            onChange={(event) => setCategoryId(event.target.value)}
-            options={[{ label: 'Sélectionner une catégorie', value: '' }, ...categoryOptions]}
-            value={categoryId}
-          />
-          <FieldError message={errors.categoryId} />
-        </>
-      )}
-      <Select
-        label="Lier à un groupe"
-        name="groupId"
-        onChange={(event) => {
-          setGroupId(event.target.value)
+      <TransactionGroupField
+        onChange={(value) => {
+          setGroupId(value)
           setAccountId('')
           setTargetAccountId('')
         }}
-        options={[{ label: 'Transaction personnelle', value: '' }, ...toOptions(groups)]}
+        options={toOptions(groups)}
         value={groupId}
       />
-      <Select
-        label={type === 'transfer' ? 'Compte source' : 'Payé avec'}
-        name="accountId"
-        onChange={(event) => setAccountId(event.target.value)}
-        options={[{ label: 'Sélectionner un compte', value: '' }, ...accountOptions]}
+      <TransactionAccountField
+        error={errors.account}
+        onChange={setAccountId}
+        options={accountOptions}
+        type={type}
         value={accountId}
       />
-      <FieldError message={errors.account} />
       {type === 'transfer' ? (
-        <>
-          <Select
-            label="Compte destination"
-            name="targetAccountId"
-            onChange={(event) => setTargetAccountId(event.target.value)}
-            options={[{ label: 'Sélectionner un compte', value: '' }, ...accountOptions]}
-            value={targetAccountId}
-          />
-          <FieldError message={errors.target} />
-        </>
+        <TransferAccountsFields
+          error={errors.target}
+          onTargetAccountChange={setTargetAccountId}
+          options={accountOptions}
+          targetAccountId={targetAccountId}
+        />
       ) : null}
-      <Input
-        label="Description"
-        name="description"
-        onChange={(event) => setDescription(event.target.value)}
-        placeholder="Optionnel"
+      <TransactionDescriptionField
+        onChange={setDescription}
         value={description}
       />
       <div className="flex flex-col-reverse gap-3 pt-2 sm:flex-row sm:justify-end">

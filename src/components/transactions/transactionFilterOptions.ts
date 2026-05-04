@@ -27,9 +27,9 @@ export function countActiveFilters(value: TransactionFiltersValue) {
   return [
     value.type !== 'all',
     value.period !== 'all',
-    Boolean(value.categoryId),
-    Boolean(value.accountId),
-    Boolean(value.groupId),
-    Boolean(value.family),
+    value.categoryIds.length > 0,
+    value.accountIds.length > 0,
+    value.groupIds.length > 0,
+    value.families.length > 0,
   ].filter(Boolean).length
 }

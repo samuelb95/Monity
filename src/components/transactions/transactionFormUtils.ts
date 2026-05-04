@@ -15,6 +15,11 @@ export type TransactionFormValues = {
   type: TransactionType
 }
 
+export type FormOption = {
+  label: string
+  value: string
+}
+
 export const today = new Date().toISOString().slice(0, 10)
 
 export function getDefaultCategoryId(
@@ -87,7 +92,9 @@ export function validateTransactionForm(values: TransactionFormValues) {
   return errors
 }
 
-export function toOptions(items: Array<{ id: string; name?: string; displayName?: string }>) {
+export function toOptions(
+  items: Array<{ id: string; name?: string; displayName?: string }>,
+): FormOption[] {
   return items.map((item) => ({
     label: item.name ?? item.displayName ?? item.id,
     value: item.id,
